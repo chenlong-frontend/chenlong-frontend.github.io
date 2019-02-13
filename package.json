@@ -5,8 +5,13 @@
   "hexo": {
     "version": "3.8.0"
   },
+  "scripts": {
+    "start": "./node_modules/.bin/hexo server",
+    "deploy": "./node_modules/.bin/hexo clean && ./node_modules/.bin/hexo deploy"
+  },
   "dependencies": {
-    "hexo": "^3.7.0",
+    "hexo": "^3.8.0",
+    "hexo-admin": "^2.3.0",
     "hexo-deployer-git": "^1.0.0",
     "hexo-generator-archive": "^0.1.5",
     "hexo-generator-category": "^0.1.3",

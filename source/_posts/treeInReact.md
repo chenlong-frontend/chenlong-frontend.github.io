@@ -51,7 +51,7 @@ export const mapTree = (data: { [key: string]: any }[]): mapTree[] => {
 
 ## 主体目录结构
 
-rc-tree 的主要文件有`contextTypes.js`、`Tree.jsx`、`TreeNode.jsx`、`util.js`4 个文件，`Tree.jsx`是外层树文件，主要负责状态管理和渲染，`TreeNode.jsx`是树节点文件，主要处理单个节点的事件和渲染，`contextTypes.js`是`react context`的类型定义文件，`util.js`主要是一些工具函数。
+rc-tree 的主要文件有`contextTypes`、`Tree`、`TreeNode`、`util`4 个文件，`Tree`是外层树文件，主要负责状态管理和渲染，`TreeNode`是树节点文件，主要处理单个节点的事件和渲染，`contextTypes`是`react context`的类型定义文件，`util`主要是一些工具函数。
 
 ## 外部函数引用
 
@@ -68,10 +68,6 @@ function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj }
 }
 
-/**
- * Use  `toArray` to get the children list which keeps the key.
- * And return single node if children is only one(This can avoid `key` missing check).
- */
 function toArray(children) {
   var ret = []
   _react2['default'].Children.forEach(children, function(c) {
@@ -94,4 +90,116 @@ React.Children.forEach(object children, function fn [, object thisArg])
 
 ## Tree.jsx
 
-首先是 Tree 组件，此组件的`getDerivedStateFromProps`是比较核心的一块，此生命周期主要用来接管父级组件传过来的数据以及一些内部状态的更新
+### getDerivedStateFromProps
+
+Tree 组件中的`getDerivedStateFromProps`是比较核心的一块，此生命周期主要用来接管父级组件传过来的数据以及一些内部状态的更新。
+
+```ts
+// Tree.tsx
+function needSync(name: string) {
+  return (
+    (!prevProps && name in props) ||
+    (prevProps && prevProps[name] !== props[name])
+  )
+}
+```
+
+此函数用来检查指定指定属性是否发生变化以此避免掉不必要的更新。
+
+getDerivedStateFromProps 中主要分为`Tree Node`、`expandedKeys`、`selectedKeys`、`checkedKeys`四个模块。
+
+首先是`Tree Node`模块，这里用到了不少`util`里的函数。简单过一下
+
+```ts
+// util.ts
+function isTreeNode(
+  node: null | undefined | { type?: { isTreeNode?: boolean } }
+) {
+  return node && node.type && node.type.isTreeNode
+}
+
+function getNodeChildren(children: types.treeNode) {
+  return toArray(children).filter(isTreeNode)
+}
+```
+
+`getNodeChildren`函数用来过滤掉非 tree 节点的元素，注意`node.type.isTreeNode`中的`isTreeNode`是在`TreeNode`组件中的自定义属性，值为`1`。
+
+```ts
+// util.ts
+function traverseTreeNodes(
+  treeNodes: types.treeNode,
+  callback: (item: types.traverseTreeNodesData) => void
+) {
+  function processNode(
+    node: React.ReactElement<any> | null,
+    index: number,
+    parent: { node: React.ReactElement<any> | null; pos: string }
+  ) {
+    const children = node ? node.props.children : treeNodes
+    const pos = node ? getPosition(parent.pos, index) : '0'
+    const childList = getNodeChildren(children)
+    if (node) {
+      const data: types.traverseTreeNodesData = {
+        node,
+        index,
+        pos,
+        key: node.key || pos,
+        parentPos: parent.node ? parent.pos : null
+      }
+      callback(data)
+    }
+    Children.forEach(childList, (subNode, subIndex) => {
+      if (typeof subNode !== 'string' && typeof subNode !== 'number')
+        processNode(subNode, subIndex, { node, pos })
+    })
+  }
+  processNode(null, 0, {} as any)
+}
+
+function convertTreeToEntities(treeNodes: types.treeNode) {
+  const posEntities: { [key: string]: types.treeToEntities } = {} as any
+  const keyEntities: { [key: string]: types.treeToEntities } = {} as any
+  let wrapper = {
+    posEntities,
+    keyEntities
+  }
+  traverseTreeNodes(treeNodes, (item: types.traverseTreeNodesData) => {
+    const { node, index, pos, key, parentPos } = item
+    const entity: types.traverseTreeEntityData = { node, index, key, pos }
+    posEntities[pos] = entity
+    keyEntities[key] = entity
+    entity.parent = parentPos && posEntities[parentPos]
+    if (entity.parent) {
+      entity.parent.children = entity.parent.children || []
+      entity.parent.children.push(entity)
+    }
+  })
+  return wrapper
+}
+```
+
+`traverseTreeNodes`用于递归出所传入节点下的所有子节点，并通过`React.Children.forEach`得出子节点的深度，再函数`convertTreeToEntities`将树中的节点展平，将封过后的结果返回给外界使用。
+
+再返回 Tree 组件的 `Tree node`部分
+
+```ts
+// Tree.tsx
+let treeNode: types.treeNode = null
+
+// 检查children是否发生了变化，如果变化了更新state
+if (needSync('children')) {
+  treeNode = toArray(props.children)
+}
+
+if (treeNode) {
+  newState.treeNode = treeNode
+
+  // 计算出节点的实体数据以便快速匹配
+  const entitiesMap = convertTreeToEntities(treeNode)
+  newState.posEntities = entitiesMap.posEntities
+  newState.keyEntities = entitiesMap.keyEntities
+}
+```
+
+此处部分简单的调用了`convertTreeToEntities`方法，并把得到的数据存到 state 中，由`let treeNode: types.treeNode = null`很容易可以看出此操作只会在 children 发生变化才会触发。

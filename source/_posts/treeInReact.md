@@ -104,9 +104,9 @@ function needSync(name: string) {
 }
 ```
 
-此函数用来检查指定指定属性是否发生变化以此避免掉不必要的更新。
+此函数用来检查 props 中指定属性是否发生变化以此避免掉不必要的更新。
 
-getDerivedStateFromProps 中主要分为`Tree Node`、`expandedKeys`、`selectedKeys`、`checkedKeys`四个模块。
+getDerivedStateFromProps 中主要分为`Tree Node`、`checkedKeys`四个模块。
 
 首先是`Tree Node`模块，这里用到了不少`util`里的函数。简单过一下
 
@@ -202,4 +202,317 @@ if (treeNode) {
 }
 ```
 
-此处部分简单的调用了`convertTreeToEntities`方法，并把得到的数据存到 state 中，由`let treeNode: types.treeNode = null`很容易可以看出此操作只会在 children 发生变化才会触发。
+此处部分简单的调用了`convertTreeToEntities`方法，并把得到的数据存到 state 中，`let treeNode: types.treeNode = null`说明可以出此操作只会在 children 发生变化才会触发。
+
+下面是`checkedKeys`，这一块保证外部状态变化之后，能够及时检查选中的 key
+
+```ts
+// Tree.tsx
+let checkedKeyEntity: {
+  checkedKeys: string[]
+  halfCheckedKeys: string[]
+} | null = null
+if (treeNode) {
+  checkedKeyEntity = {
+    checkedKeys: prevState.checkedKeys,
+    halfCheckedKeys: prevState.halfCheckedKeys
+  }
+}
+if (checkedKeyEntity) {
+  let { checkedKeys = [], halfCheckedKeys = [] } = checkedKeyEntity
+  const conductKeys = conductCheck(checkedKeys, true, keyEntities)
+  checkedKeys = conductKeys.checkedKeys
+  halfCheckedKeys = conductKeys.halfCheckedKeys
+  newState.checkedKeys = checkedKeys
+  newState.halfCheckedKeys = halfCheckedKeys
+}
+```
+
+如果 treeNode 发生变化，及时检查已选和半选择的 keys
+
+最后通过返回 `newState` 更新 `Tree`组件的内部状态
+
+### renderTreeNode
+
+`renderTreeNode`是一个比较重要的函数，主要负责节点的渲染
+
+```tsx
+// Tree.tsx
+renderTreeNode = (
+  child: React.ReactElement<Props>,
+  index: number,
+  level = 0
+) => {
+  const { expandedKeys, halfCheckedKeys, selectedKeys } = this.state
+  const pos = getPosition(level, index)
+  const key = child.key || pos
+  const newProps = {
+    key,
+    eventKey: key,
+    expanded: expandedKeys.indexOf(key) !== -1,
+    pos,
+    checked: this.isKeyChecked(key),
+    halfChecked: halfCheckedKeys.indexOf(key) !== -1,
+    selected: selectedKeys.indexOf(key) !== -1
+  }
+  return React.cloneElement<Props>(child, newProps)
+}
+```
+
+此函数的`newProps`较为重要，节点的主要状态，像选中、半选中、展开等信息均在此处注入到了`props`里
+
+`Tree`先暂时告一段落，下面是转到`TreeNode`组件
+
+## TreeNode
+
+`TreeNode`从`render`函数开始解读，代码如下:
+
+```tsx
+// TreeNode.tsx
+public render() {
+  return (
+    <li>
+      {this.renderSwitcher()}
+      {this.renderCheckbox()}
+      {this.renderSelector()}
+      {this.renderChildren()}
+    </li>
+  )
+}
+```
+
+主要分为四块，`renderSwitcher`是控制列表展开与折叠的按钮，`renderCheckbox`是`checkbox`框，`renderSelector`是列表的主体内容部分，同时用作选择区，`renderChildren`如果此节点存在子节点的情况下，使用此函数来进行渲染子元素列表。
+
+在解读源码时，我删除了样式部分的内容，以便阅读。所以最终效果会有点 low
+
+### renderSwitcher
+
+```tsx
+// TreeNode.tsx
+onExpand = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  const {
+    rcTree: { onNodeExpand }
+  } = this.context
+  onNodeExpand(e, this)
+}
+renderSwitcher = () => {
+  return <span onClick={this.onExpand}>点击展开</span>
+}
+```
+
+上述代码比较简单，主要功能实现代码在于`onNodeExpand`，这是在`Tree`组件内实现的代码
+
+```tsx
+// Tree.tsx
+onNodeExpand = (
+  e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+  treeNode: React.ReactElement<Props>
+) => {
+  let { expandedKeys } = this.state
+  const { eventKey, expanded } = treeNode.props
+  const targetExpanded = !expanded
+  if (targetExpanded) {
+    expandedKeys = arrAdd(expandedKeys, eventKey)
+  } else {
+    expandedKeys = arrDel(expandedKeys, eventKey)
+  }
+  this.setUncontrolledState({ expandedKeys })
+  return null
+}
+```
+
+`eventKey`是当前选中节点的 key，`expanded`是当前展开的状态，如果`expanded`为 true，则`expandedKeys`添加`eventKey`，反之删除`eventKey`，最后更新到`state`之中。
+
+### renderCheckbox
+
+```tsx
+// TreeNode.tsx
+onCheck = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+  const { checked } = this.props
+  const {
+    rcTree: { onNodeCheck }
+  } = this.context
+  e.preventDefault()
+  const targetChecked = !checked
+  onNodeCheck(e, this, targetChecked)
+}
+renderCheckbox = () => {
+  const { checked, halfChecked } = this.props
+  return (
+    <span onClick={this.onCheck}>
+      {checked ? '选中|' : '未选中|'}
+      {halfChecked ? '半选中|' : '未半选中|'}
+    </span>
+  )
+}
+```
+
+与`renderSwitcher`一样，此处仅负责渲染，具体的功能由`Tree`组件中的`onNodeCheck`实现
+
+在`onNodeCheck`中使用的`conductCheck`是一个比较重要的函数
+
+```ts
+export function conductCheck(
+  keyList: string[],
+  isCheck: boolean,
+  keyEntities: types.traverseTreeEntityData,
+  checkStatus: any = {}
+) {
+  const checkedKeys: { [key: string]: any } = {}
+  const halfCheckedKeys: { [key: string]: any } = {} // 记录子节点被选中的key(包括子节点半选中)
+  ;(checkStatus.checkedKeys || []).forEach((key: any) => {
+    checkedKeys[key] = true
+  })
+  ;(checkStatus.halfCheckedKeys || []).forEach((key: any) => {
+    halfCheckedKeys[key] = true
+  })
+
+  // Conduct up
+  function conductUp(key: any) {
+    if (checkedKeys[key] === isCheck) return
+
+    const entity = keyEntities[key]
+    if (!entity) return
+
+    const { children, parent, node } = entity
+
+    if (isCheckDisabled(node)) return
+
+    // Check child node checked status
+    let everyChildChecked = true
+    let someChildChecked = false // Child checked or half checked
+    ;(children || [])
+      .filter((child: any) => !isCheckDisabled(child.node))
+      .forEach(({ key: childKey }: any) => {
+        const childChecked = checkedKeys[childKey]
+        const childHalfChecked = halfCheckedKeys[childKey]
+
+        if (childChecked || childHalfChecked) someChildChecked = true
+        if (!childChecked) everyChildChecked = false
+      })
+
+    // Update checked status
+    if (isCheck) {
+      checkedKeys[key] = everyChildChecked
+    } else {
+      checkedKeys[key] = false
+    }
+    halfCheckedKeys[key] = someChildChecked
+
+    if (parent) {
+      conductUp(parent.key)
+    }
+  }
+
+  // Conduct down
+  function conductDown(key: any) {
+    if (checkedKeys[key] === isCheck) return
+
+    const entity = keyEntities[key]
+    if (!entity) return
+
+    const { children, node } = entity
+
+    if (isCheckDisabled(node)) return
+
+    checkedKeys[key] = isCheck
+    ;(children || []).forEach((child: any) => {
+      conductDown(child.key)
+    })
+  }
+
+  function conduct(key: any) {
+    const entity = keyEntities[key]
+
+    if (!entity) {
+      console.warn(`'${key}' does not exist in the tree.`)
+      return
+    }
+
+    const { children, parent, node } = entity
+    checkedKeys[key] = isCheck
+
+    if (isCheckDisabled(node)) return // Conduct down
+    ;(children || [])
+      .filter((child: any) => !isCheckDisabled(child.node))
+      .forEach((child: any) => {
+        conductDown(child.key)
+      })
+
+    // Conduct up
+    if (parent) {
+      conductUp(parent.key)
+    }
+  }
+  ;(keyList || []).forEach((key: any) => {
+    conduct(key)
+  })
+  const checkedKeyList: any = []
+  const halfCheckedKeyList: any = []
+  Object.keys(checkedKeys).forEach(key => {
+    if (checkedKeys[key]) {
+      checkedKeyList.push(key)
+    }
+  })
+  Object.keys(halfCheckedKeys).forEach(key => {
+    if (!checkedKeys[key] && halfCheckedKeys[key]) {
+      halfCheckedKeyList.push(key)
+    }
+  })
+  return {
+    checkedKeys: checkedKeyList,
+    halfCheckedKeys: halfCheckedKeyList
+  }
+}
+```
+
+`conductCheck`接受四个参数，`keyList`选中的 key 的集合，`checked`表示执行的是勾选还是反勾选操作，`keyEntities`是以 key 为属性名的节点实体列表，`checkStatus`是当前已选择的 key 和半选择的 key 的集合。
+
+```tsx
+onNodeCheck = (
+  e: React.MouseEvent<HTMLSpanElement>,
+  treeNode: any,
+  checked: boolean
+) => {
+  const {
+    keyEntities,
+    checkedKeys: oriCheckedKeys,
+    halfCheckedKeys: oriHalfCheckedKeys
+  } = this.state
+  const {
+    props: { eventKey }
+  } = treeNode
+  const eventObj: any = {
+    event: 'check',
+    node: treeNode,
+    checked,
+    nativeEvent: e.nativeEvent
+  }
+
+  const { checkedKeys, halfCheckedKeys } = conductCheck(
+    [eventKey],
+    checked,
+    keyEntities,
+    {
+      checkedKeys: oriCheckedKeys,
+      halfCheckedKeys: oriHalfCheckedKeys
+    }
+  )
+
+  eventObj.checkedNodes = []
+  eventObj.checkedNodesPositions = []
+  eventObj.halfCheckedKeys = halfCheckedKeys
+  checkedKeys.forEach((key: string) => {
+    const entity = keyEntities[key]
+    if (!entity) return
+    const { node, pos } = entity
+    eventObj.checkedNodes.push(node)
+    eventObj.checkedNodesPositions.push({ node, pos })
+  })
+
+  this.setUncontrolledState({
+    checkedKeys,
+    halfCheckedKeys
+  })
+}
+```

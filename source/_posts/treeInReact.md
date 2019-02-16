@@ -1,5 +1,5 @@
 title: rc-tree 源码解读
-tags: [react,typescript]
+tags: [react,typescript,tree]
 categories: [react]
 date: 2019-02-13 11:43:00
 
@@ -19,6 +19,8 @@ interface dataType {
   ...
 }
 ```
+
+---
 
 ## 数据精简
 
@@ -49,9 +51,13 @@ export const mapTree = (data: { [key: string]: any }[]): mapTree[] => {
 
 接下来就是如何展示的问题了，考虑到如果自己从零开始造轮子从工期和质量上考虑都不好，直接使用 rc-tree 的话要完整实现 ui 提出来的样式和功能比较麻烦，有些情况下还会出现无法实现的情况，综合考量一下决定细读 rc-tree 的源码，将 rc-tree 移植到项目中，在移植过程中结合项目需求再对代码做一些改动。
 
+---
+
 ## 主体目录结构
 
 rc-tree 的主要文件有`contextTypes`、`Tree`、`TreeNode`、`util`4 个文件，`Tree`是外层树文件，主要负责状态管理和渲染，`TreeNode`是树节点文件，主要处理单个节点的事件和渲染，`contextTypes`是`react context`的类型定义文件，`util`主要是一些工具函数。
+
+---
 
 ## 外部函数引用
 
@@ -87,6 +93,8 @@ React.Children.forEach ，此方法是在每个直接子元素（children）上�
 ```js
 React.Children.forEach(object children, function fn [, object thisArg])
 ```
+
+---
 
 ## Tree.jsx
 
@@ -236,7 +244,7 @@ if (checkedKeyEntity) {
 
 `renderTreeNode`是一个比较重要的函数，主要负责节点的渲染
 
-```tsx
+```ts
 // Tree.tsx
 renderTreeNode = (
   child: React.ReactElement<Props>,
@@ -261,7 +269,9 @@ renderTreeNode = (
 
 此函数的`newProps`较为重要，节点的主要状态，像选中、半选中、展开等信息均在此处注入到了`props`里
 
-`Tree`先暂时告一段落，下面是转到`TreeNode`组件
+`Tree`先暂时告一段落，下面是转到`TreeNode`组件，在这里会提到一些`Tree`中的函数
+
+---
 
 ## TreeNode
 
@@ -302,7 +312,7 @@ renderSwitcher = () => {
 
 上述代码比较简单，主要功能实现代码在于`onNodeExpand`，这是在`Tree`组件内实现的代码
 
-```tsx
+```ts
 // Tree.tsx
 onNodeExpand = (
   e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
@@ -490,7 +500,7 @@ renderSelector = () => {
 
 列表的图标和标题在此函数渲染，`onSelectorClick`与上述几个渲染的函数相同，最终都是调用的 `Tree`组件中的`onNodeSelect`函数。
 
-```tsx
+```ts
 // Tree.jsx
 onNodeSelect = (
   e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
@@ -548,6 +558,8 @@ renderChildren = () => {
 ```
 
 此函数并使用`getNodeChildren`获取到当前节点的子节点，然后通过调用`Tree`里`renderTreeNode`渲染出来，与`Tree`组件中所做的事是一样的。
+
+---
 
 ## 总结
 

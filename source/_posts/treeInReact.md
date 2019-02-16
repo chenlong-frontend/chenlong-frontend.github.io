@@ -1,4 +1,4 @@
-title: 基于 rc-tree 的树形数据展示实践
+title: rc-tree 源码解读
 tags: [react,typescript]
 categories: [react]
 date: 2019-02-13 11:43:00
@@ -352,60 +352,58 @@ renderCheckbox = () => {
 在`onNodeCheck`中使用的`conductCheck`是一个比较重要的函数
 
 ```ts
-export function conductCheck(
+function conductCheck(
   keyList: string[],
   isCheck: boolean,
   keyEntities: types.traverseTreeEntityData,
-  checkStatus: any = {}
+  checkStatus: types.checkStatus = {}
 ) {
-  const checkedKeys: { [key: string]: any } = {}
-  const halfCheckedKeys: { [key: string]: any } = {} // 记录子节点被选中的key(包括子节点半选中)
+  // 声明两个临时变量用来标识哪些key已经被选中或半选中
+  const checkedKeys: { [key: string]: boolean } = {}
+  const halfCheckedKeys: { [key: string]: boolean } = {} // 记录子节点被选中的key(包括子节点半选中)
+    // 将已选中或半选中的值记录下来
   ;(checkStatus.checkedKeys || []).forEach((key: any) => {
     checkedKeys[key] = true
   })
   ;(checkStatus.halfCheckedKeys || []).forEach((key: any) => {
     halfCheckedKeys[key] = true
   })
-
-  // Conduct up
-  function conductUp(key: any) {
+  function conductUp(key: string) {
     if (checkedKeys[key] === isCheck) return
-
     const entity = keyEntities[key]
     if (!entity) return
 
     const { children, parent, node } = entity
 
     if (isCheckDisabled(node)) return
-
-    // Check child node checked status
     let everyChildChecked = true
-    let someChildChecked = false // Child checked or half checked
+    let someChildChecked = false
     ;(children || [])
       .filter((child: any) => !isCheckDisabled(child.node))
       .forEach(({ key: childKey }: any) => {
+        // 查看子元素是否被选中
         const childChecked = checkedKeys[childKey]
+        // 查看子元素是否被半选中
         const childHalfChecked = halfCheckedKeys[childKey]
-
+        // 只要有一个子元素被选中或者半选中，当前父元素即处于半选中状态
         if (childChecked || childHalfChecked) someChildChecked = true
+        // 如果子元素存在一个未被选中则`everyChildChecked`设为`false`，即属于半选中状态
         if (!childChecked) everyChildChecked = false
       })
-
     // Update checked status
     if (isCheck) {
+      // 选中状态下执行
       checkedKeys[key] = everyChildChecked
     } else {
+      // 取消状态下执行
       checkedKeys[key] = false
     }
     halfCheckedKeys[key] = someChildChecked
-
     if (parent) {
       conductUp(parent.key)
     }
   }
-
-  // Conduct down
-  function conductDown(key: any) {
+  function conductDown(key: string) {
     if (checkedKeys[key] === isCheck) return
 
     const entity = keyEntities[key]
@@ -420,35 +418,35 @@ export function conductCheck(
       conductDown(child.key)
     })
   }
-
-  function conduct(key: any) {
+  function conduct(key: string) {
+    // 判断传入的key是否在列表里
     const entity = keyEntities[key]
-
     if (!entity) {
       console.warn(`'${key}' does not exist in the tree.`)
       return
     }
-
     const { children, parent, node } = entity
+    // 将传入的key设为已选中
     checkedKeys[key] = isCheck
-
-    if (isCheckDisabled(node)) return // Conduct down
+    if (isCheckDisabled(node))
+      return // 读取当前选中元素的子元素，过滤掉不可选节点
     ;(children || [])
       .filter((child: any) => !isCheckDisabled(child.node))
       .forEach((child: any) => {
+        // 此函数递归出所有子节点，并将其设为选中状态
         conductDown(child.key)
       })
-
-    // Conduct up
     if (parent) {
+      // 此函数递归出其父节点，并将其设为选中或者半选中状态
       conductUp(parent.key)
     }
   }
-  ;(keyList || []).forEach((key: any) => {
+  // 遍历外部传入选中的值
+  ;(keyList || []).forEach((key: string) => {
     conduct(key)
   })
-  const checkedKeyList: any = []
-  const halfCheckedKeyList: any = []
+  const checkedKeyList: string[] = []
+  const halfCheckedKeyList: string[] = []
   Object.keys(checkedKeys).forEach(key => {
     if (checkedKeys[key]) {
       checkedKeyList.push(key)
@@ -468,51 +466,91 @@ export function conductCheck(
 
 `conductCheck`接受四个参数，`keyList`选中的 key 的集合，`checked`表示执行的是勾选还是反勾选操作，`keyEntities`是以 key 为属性名的节点实体列表，`checkStatus`是当前已选择的 key 和半选择的 key 的集合。
 
+`conductUp`函数内部`everyChildChecked`的判定在我个人看来比较巧妙，`if (!childChecked) everyChildChecked = false`，如果存在未被选中的，`everyChildChecked`就设为`false`，虽然这并不难，但我自己在实际项目中可能不会这么去用。
+
+关于`onNodeCheck`函数就不细说了，就是调用了上述的`conductCheck`，得到选中和半选中的元素，然后更新状态。
+
+### renderSelector
+
 ```tsx
-onNodeCheck = (
-  e: React.MouseEvent<HTMLSpanElement>,
-  treeNode: any,
-  checked: boolean
-) => {
-  const {
-    keyEntities,
-    checkedKeys: oriCheckedKeys,
-    halfCheckedKeys: oriHalfCheckedKeys
-  } = this.state
-  const {
-    props: { eventKey }
-  } = treeNode
-  const eventObj: any = {
-    event: 'check',
-    node: treeNode,
-    checked,
-    nativeEvent: e.nativeEvent
-  }
-
-  const { checkedKeys, halfCheckedKeys } = conductCheck(
-    [eventKey],
-    checked,
-    keyEntities,
-    {
-      checkedKeys: oriCheckedKeys,
-      halfCheckedKeys: oriHalfCheckedKeys
-    }
+// TreeNode.tsx
+renderSelector = () => {
+  const { title, selected } = this.props
+  return (
+    <span
+      title={typeof title === 'string' ? title : ''}
+      onClick={this.onSelectorClick}
+    >
+      {this.renderIcon()}
+      {title}
+    </span>
   )
-
-  eventObj.checkedNodes = []
-  eventObj.checkedNodesPositions = []
-  eventObj.halfCheckedKeys = halfCheckedKeys
-  checkedKeys.forEach((key: string) => {
-    const entity = keyEntities[key]
-    if (!entity) return
-    const { node, pos } = entity
-    eventObj.checkedNodes.push(node)
-    eventObj.checkedNodesPositions.push({ node, pos })
-  })
-
-  this.setUncontrolledState({
-    checkedKeys,
-    halfCheckedKeys
-  })
 }
 ```
+
+列表的图标和标题在此函数渲染，`onSelectorClick`与上述几个渲染的函数相同，最终都是调用的 `Tree`组件中的`onNodeSelect`函数。
+
+```tsx
+// Tree.jsx
+onNodeSelect = (
+  e: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+  treeNode: any
+) => {
+  let { selectedKeys } = this.state
+  const { keyEntities } = this.state
+  const { selected, eventKey } = treeNode.props
+  const targetSelected = !selected
+  if (!targetSelected) {
+    selectedKeys = arrDel(selectedKeys, eventKey)
+  } else {
+    selectedKeys = arrAdd(selectedKeys, eventKey)
+  }
+  const selectedNodes = selectedKeys
+    .map((key: string) => {
+      const entity = keyEntities[key]
+      if (!entity) return null
+
+      return entity.node
+    })
+    .filter((node: any) => node)
+  this.setUncontrolledState({ selectedKeys })
+}
+```
+
+而`onNodeSelect`所做的事情也非常简单，就是维护了一个选择列表的数组
+
+### renderChildren
+
+此函数用来渲染当前节点的子节点
+
+```tsx
+// TreeNode.tsx
+renderChildren = () => {
+  const { expanded, pos } = this.props
+  const {
+    rcTree: { renderTreeNode }
+  } = this.context
+  // 子节点元素
+  const nodeList = this.getNodeChildren()
+  if (nodeList.length === 0) {
+    return null
+  }
+  if (expanded) {
+    return (
+      <ul>
+        {mapChildren(nodeList, (node: any, index: string) =>
+          renderTreeNode(node, index, pos)
+        )}
+      </ul>
+    )
+  }
+}
+```
+
+此函数并使用`getNodeChildren`获取到当前节点的子节点，然后通过调用`Tree`里`renderTreeNode`渲染出来，与`Tree`组件中所做的事是一样的。
+
+## 总结
+
+通过这次对`rc-tree`的源码解读与实践，学到了不少`react`方面的知识，首先是 api 层面的，`React.Children`、`Context`、`React.cloneElement`、`getDerivedStateFromProps`等等，虽然有些平时看过，但没有实际使用过，也就只停留在看看的层面。另外还有写法的经验，比如我之前一直不清楚`util`里应该放什么比较好，还有函数应该拆分到什么程度(`traverseTreeNodes`值得一看)，以及渲染组件应该组织。最重要的还是实现 tree 渲染的思路，也就是`TreeNode`组件中的`renderChildren函数`。同时递归的使用也比较多，而循环加递归的组合可以实现一些比较神奇的操作。
+
+看完`rc-tree`之后深感自己对`react`认知不足，还需多加学习。

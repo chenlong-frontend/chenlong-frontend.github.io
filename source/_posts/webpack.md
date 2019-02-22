@@ -1,8 +1,9 @@
 ---
 title: webpack -ts
 author: 陈龙
-tags: [typescript, webpack]
+tags: [webpack, rollup]
 categories: [webpack]
+date: 2019-02-22 8:43:00
 ---
 
 最近遇到一个需要将 ts 文件打包成 js 的小问题，打包工具有很多，就我所知道的就有`gulp`、`rollup`、`webpack`，下面就大致说说我是如何通过阅读文档从零搭建一个简单的打包配置的。
@@ -46,7 +47,7 @@ const config = {
     library: 'ModelTool'
   },
   resolve: {
-    // 加载文件
+    // 自动解析确定的扩展
     extensions: ['.ts', '.js']
   },
   module: {
@@ -80,4 +81,104 @@ const config = {
 }
 
 module.exports = config
+```
+
+## package.json
+
+在`package.json`中加入如下快捷启动方式，`watch`用来监听文件变化，build 用来打包
+
+```json
+{
+  "scripts": {
+    "watch": "webpack --watch --progress",
+    "build": "webpack --config webpack.config.js"
+  }
+}
+```
+
+## rollup
+
+另外我也用尝试着使用 rollup 进行对比，rollup 比起 webpack 较为简单，打包速度也比较快，大致配置如下：
+
+```js
+// rollup.config.js
+import babel from 'rollup-plugin-babel'
+import resolve from 'rollup-plugin-node-resolve'
+import typescript from 'rollup-plugin-typescript'
+
+const license = `/*!
+ * Released under the MIT License.
+ */`
+
+export default {
+  input: 'src/modelTool.ts',
+  output: [
+    {
+      // 输出js格式
+      format: 'umd',
+      // 全局变量名
+      name: 'ModelTool',
+      // 输出文件地址
+      file: 'dist/xx.js',
+      // 输出文件首行显示文字
+      banner: license,
+      // 全局变量与external映射
+      globals: {
+        lodash: '_'
+      }
+    },
+    {
+      format: 'es',
+      file: 'dist/xx.module.js',
+      banner: license,
+      globals: {
+        lodash: '_'
+      }
+    }
+  ],
+  plugins: [
+    resolve({
+      // 将自定义选项传递给解析插件
+      customResolveOptions: {
+        moduleDirectory: 'node_modules'
+      }
+    }),
+    // babel插件
+    babel(),
+    // ts插件
+    typescript({ lib: ['es5', 'es6', 'dom'], target: 'es5' })
+  ],
+  // 外部依赖的名称
+  external: ['lodash']
+}
+```
+
+babel 在 `package.json` 中的配置
+
+```json
+// package.json
+{
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "useBuiltIns": false
+        }
+      ]
+    ]
+  }
+}
+```
+
+当前官方提供的 ts 插件`rollup-plugin-typescript`不会做类型检查以及`threejs`的一些插件引用问题，故而没有采用 rollup
+
+rollup 打包出来的文件默认是未压缩的，这里采用的是 `terser`进行的压缩，只需在 `package.josn` 中进行如下设置即可：
+
+```json
+{
+  "scripts": {
+    "build": "rollup --config && terser dist/xxx.js -o dist/xxx.min.js"
+  }
+}
 ```

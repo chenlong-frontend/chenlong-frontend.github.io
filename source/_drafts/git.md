@@ -14,3 +14,7 @@ git reset --soft|--mixed|--hard <commit_id>
 更换远程地址
 
 git remote set-url origin https://gitee.com/yunbin_product/jellyfish.git
+
+切换本地默认分支
+
+git push --set-upstream origin browser

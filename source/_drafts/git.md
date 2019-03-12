@@ -18,3 +18,7 @@ git remote set-url origin https://gitee.com/yunbin_product/jellyfish.git
 切换本地默认分支
 
 git push --set-upstream origin browser
+
+git 区分大小写
+
+git config core.ignorecase false

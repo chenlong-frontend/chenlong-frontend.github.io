@@ -1,12 +1,12 @@
 ---
-title: 关于设置localStorage时间
+title: 关于设置localStorage过期时间
 author: 陈龙
 date: 2019-03-22 22:56:04
 tags: [javascript,localStorage]
 categories: [javascript]
 ---
 
-今天被问到如何实现给localStorage添加过期时间。经过慢慢思考，我想到的方法下可以归结为以下几种：
+今天有被问到如何实现给localStorage添加过期时间。经过慢慢思考，我想到的方法下可以归结为以下几种：
 
 1. 将时间拼接到值之后。比如`set("username","1553264048068;",1553264048068)`，实际存的值为`localStorage.setItem("username","1553264048068;;1553264048068")`。取值的策略时反向寻找到第一个分割符`;`,并将将其截取。
 2. 使用对象进行二次组合。比如`set("username","Marcus",1553264048068)`,实际存的值为`localStorage.setItem({"value":"Marcus","expire":1553264048068})`。取值的策略是`JSON.parse`后去取出值和时间。

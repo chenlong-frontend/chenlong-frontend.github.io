@@ -53,3 +53,5 @@ import { Bustard } from 'bustard'
 const t = new Bustard()
 t.use(new Bustard.ColorTool())
 ```
+
+防抖动（debounce ）和节流阀（throttle ） loadsh

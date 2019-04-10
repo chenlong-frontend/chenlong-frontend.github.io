@@ -114,3 +114,36 @@ export { Modal }
 ```
 
 https://react.docschina.org/docs/react-component.html
+
+## 局部热更新
+
+yarn add react-dom@npm:@hot-loader/react-dom 
+
+此种方式无需修改配置文件即可实现局部热更新热
+
+```jsx
+import React from 'react'
+import { hot } from 'react-hot-loader'
+
+const App = () => <div>Hello World!</div>
+
+export default process.env.NODE_ENV === "development" ? hot(module)(App) : App
+```
+
+## 将src加入引入路径
+
+```js
+const path = require('path');
+const { override } = require('customize-cra')
+
+const overrideProcessEnv = () => config => {
+  config.resolve.modules = [
+    path.join(__dirname, 'src')
+  ].concat(config.resolve.modules);
+  return config;
+};
+
+module.exports = override(
+  overrideProcessEnv()
+)
+```

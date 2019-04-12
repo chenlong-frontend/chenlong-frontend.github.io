@@ -117,7 +117,7 @@ https://react.docschina.org/docs/react-component.html
 
 ## 局部热更新
 
-yarn add react-dom@npm:@hot-loader/react-dom 
+yarn add react-dom@npm:@hot-loader/react-dom
 
 此种方式无需修改配置文件即可实现局部热更新热
 
@@ -127,23 +127,88 @@ import { hot } from 'react-hot-loader'
 
 const App = () => <div>Hello World!</div>
 
-export default process.env.NODE_ENV === "development" ? hot(module)(App) : App
+export default (process.env.NODE_ENV === 'development' ? hot(module)(App) : App)
 ```
 
-## 将src加入引入路径
+## 将 src 加入引入路径
 
 ```js
-const path = require('path');
+const path = require('path')
 const { override } = require('customize-cra')
 
 const overrideProcessEnv = () => config => {
-  config.resolve.modules = [
-    path.join(__dirname, 'src')
-  ].concat(config.resolve.modules);
-  return config;
-};
+  config.resolve.modules = [path.join(__dirname, 'src')].concat(
+    config.resolve.modules
+  )
+  return config
+}
 
-module.exports = override(
-  overrideProcessEnv()
+module.exports = override(overrideProcessEnv())
+```
+
+## 路由用法
+
+```jsx
+const App = ({ match }) => (
+  <div className="gx-main-content-wrapper">
+    <Switch>
+      <Route
+        path={`${match.url}ChatRoom`}
+        component={asyncComponent(() => import('./Chat'))}
+      />
+      <Route
+        path={match.url}
+        render={props => (
+          <Redirect
+            to={{
+              pathname: '/ChatRoom',
+              state: { from: props.location }
+            }}
+          />
+        )}
+      />
+    </Switch>
+  </div>
 )
+```
+
+## 登录认证
+
+```jsx
+// 路由重定向
+const RestrictedRoute = ({ component: Component, token, ...rest }) => (
+  <Route
+    {...rest}
+    render={props =>
+      token ? (
+        <Component {...props} />
+      ) : (
+        <Redirect
+          to={{
+            pathname: '/signin',
+            state: { from: props.location }
+          }}
+        />
+      )
+    }
+  />
+)
+
+class App extends Component {
+  render() {
+    const { match, token } = this.props
+    return (
+      <LocaleProvider locale={antdCN}>
+        <Switch>
+          <Route exact path="/signin" component={() => <div>denglu</div>} />
+          <RestrictedRoute
+            path={`${match.url}`}
+            token={token}
+            component={() => <div>sd</div>}
+          />
+        </Switch>
+      </LocaleProvider>
+    )
+  }
+}
 ```

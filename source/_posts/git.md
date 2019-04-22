@@ -47,3 +47,12 @@ git clone 项目地址 重命名
 ```shell
 git config core.ignorecase false
 ```
+
+## git 用户名邮箱等配置
+
+使用`git config --list`可列出所有的 git 配置，使用如下方式配置用户名邮箱等
+
+```shell
+git config --global user.name "1016482011"
+git config --global user.email 2956957982@qq.com
+```

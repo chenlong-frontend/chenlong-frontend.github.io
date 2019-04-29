@@ -82,3 +82,9 @@ deploy:
   repo: https://github.com/1016482011/1016482011.github.io.git #https://bitbucket.org/JohnSmith/johnsmith.bitbucket.io
   branch: master
   message:
+
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000

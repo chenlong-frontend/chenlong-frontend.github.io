@@ -55,3 +55,6 @@ t.use(new Bustard.ColorTool())
 ```
 
 防抖动（debounce ）和节流阀（throttle ） loadsh
+
+// 事件多重触发时使用
+e.stopPropagation()

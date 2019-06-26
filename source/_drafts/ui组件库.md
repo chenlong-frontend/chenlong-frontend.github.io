@@ -1,3 +1,0 @@
-Semantic UI React
-
-antd

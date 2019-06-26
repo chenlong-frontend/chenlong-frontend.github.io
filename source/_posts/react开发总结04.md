@@ -1,5 +1,5 @@
 ---
-title: 记如何在现有开发中“偷懒”
+title: 记如何在现有开发中可复制模板
 author: 陈龙
 date: 2019-06-21 13:02:26
 tags: [react]
@@ -153,9 +153,9 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Row, Col, Button } from 'antd'
 import Widget from 'components/Widget'
-import Search from './Search'
-import Table from './Table'
-import { getListAction } from 'appRedux/actions/InsuranceManage/forcibleInsuranceList'
+import Search from './search'
+import Table from './table'
+import { getListAction } from 'appRedux/actions/$P/$C'
 import style from './index.css'
 
 class TablePage extends Component {

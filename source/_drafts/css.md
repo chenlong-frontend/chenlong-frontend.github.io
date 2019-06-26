@@ -1,6 +1,5 @@
 ---
 title: css
-tags:
 ---
 
 ```css

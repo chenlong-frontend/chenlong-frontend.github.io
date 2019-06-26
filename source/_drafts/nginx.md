@@ -1,4 +1,10 @@
-```
+---
+title: 流式加载数据
+tags: [react]
+categories: [react]
+---
+
+```shell
  server {
     listen       8081;
     server_name  localhost;
@@ -26,7 +32,7 @@
 
 netstat -lntup
 
-```
+```shell
 cat /usr/local/webserver/nginx/conf/nginx.conf # 查看配置文件
 /usr/local/webserver/nginx/sbin/nginx  # 启动 Nginx
 /usr/local/webserver/nginx/sbin/nginx -t # 测试Nginx
@@ -37,7 +43,7 @@ cat /usr/local/webserver/nginx/conf/nginx.conf # 查看配置文件
 
 开启 gzip 并把压缩比给到最大
 
-```
+```shell
   gzip on;
   gzip_min_length 1k;
   gzip_buffers 4 16k;

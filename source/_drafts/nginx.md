@@ -54,4 +54,12 @@ cat /usr/local/webserver/nginx/conf/nginx.conf # 查看配置文件
 
 ```
 
+```shell
+// history模式路由匹配
 try_files $uri $uri/ /index.html;
+```
+
+```shell
+// 指定配置文件位置，报pid找不到可试
+nginx -c /usr/local/webserver/nginx/conf/nginx.conf
+```

@@ -66,3 +66,9 @@ node_modules
 之后执行`docker build -t l1016482011/prisma-rest .`打包镜像。可以执行`docker images`查看当前镜像信息。
 
 通过执行`docker run -p 3333:3333 -d l1016482011/prisma-rest`启动进行，访问本机`3333`端口即可。
+
+## 一些常用信息
+
+[docker hub](https://cloud.docker.com/)
+
+[docker 命名大全](https://www.runoob.com/docker/docker-command-manual.html)

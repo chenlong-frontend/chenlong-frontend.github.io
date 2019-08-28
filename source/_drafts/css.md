@@ -18,3 +18,12 @@ xxx:after {
 ### 外边距合并
 
 https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Box_Model/Mastering_margin_collapsing
+
+### 垂直居中
+
+top: 50%;
+transform: translateY(-50%);
+
+### inline 类型的 flex 容器
+
+    display: inline-flex;

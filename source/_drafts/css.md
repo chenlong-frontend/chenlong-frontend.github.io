@@ -24,6 +24,11 @@ https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Box_Model/Mastering_margin_
 top: 50%;
 transform: translateY(-50%);
 
+### 水平居中
+
+left: 50%
+transform: translateX(-50%);
+
 ### inline 类型的 flex 容器
 
     display: inline-flex;

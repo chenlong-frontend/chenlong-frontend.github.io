@@ -74,3 +74,9 @@ API 保持高度的一致性可以带来更多的便捷
 
 加分回答
 虽然这只是一种约定，但是我们应该按照约定的去做。
+
+## js实现readonly属性
+  get state () {
+    return this._state
+  }
+  set state(v) {}

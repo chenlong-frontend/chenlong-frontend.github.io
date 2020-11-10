@@ -14,4 +14,4 @@ categories: [javascript]
 
 后来在大三下学期，我再一次精读了此书的前 500 页，并把其中的内容做了摘录，并在近期发布到了 gitbook 上，其内容可通过如下地址访问：
 
-[https://clong.gitbook.io/js/](https://clong.gitbook.io/js/)
+[https://2956957982.gitbook.io/js/](https://2956957982.gitbook.io/js/)

@@ -83,3 +83,23 @@ API 保持高度的一致性可以带来更多的便捷
 
 ## svg 转图片
 'data:image/svg+xml;charset=utf-8,' + svg.replace(/#/g, '%23').replace(/\n/g, '%0A')
+
+## 压缩图片
+
+function compressPicture ({src, width, quality}) {
+    return new Promise((resolve, reject) => {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        var img = new Image();
+        img.src = src
+        img.onload= function(){
+            canvas.width= width;
+            canvas.height= img.height / img.width * width;
+            ctx.drawImage(img,0,0,canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", quality))
+        };
+        img.onerror = function() {
+            reject()
+        }
+    })
+}

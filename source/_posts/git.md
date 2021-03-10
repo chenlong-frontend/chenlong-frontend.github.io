@@ -36,6 +36,8 @@ git clone 项目地址 重命名
 - soft 保留源码,只回退到 commit 信息到某个版本.不涉及 index 的回退,如果还需要提交,直接 commit 即可.
 - hard 源码也会回退到某个版本,commit 和 index 都会回退到某个版本.(注意,这种方式是改变本地代码仓库源码)
 
+提交时使用 `git push -f`
+
 ## 更换远程地址
 
 遇到过一次项目远程地址更换，可使用`git remote set-url origin https://gitee.com/yunbin_product/jellyfish.git`进行更换

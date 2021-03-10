@@ -1,3 +1,10 @@
+<!--
+ * @Description: 
+ * @Author: chenlong
+ * @Date: 2020-07-23 13:18:04
+ * @LastEditTime: 2021-01-18 19:36:26
+ * @LastEditors: chenlong
+-->
 ---
 title: css
 ---
@@ -32,3 +39,13 @@ transform: translateX(-50%);
 ### inline 类型的 flex 容器
 
     display: inline-flex;
+
+## string
+
+typeof new String('hello') // object
+
+'11'.length = 2 // 是因为js做了装箱，将 '11'字符串转成了对象
+
+## 焦点获取
+
+ a 标签没有href属性是不能获取标签的

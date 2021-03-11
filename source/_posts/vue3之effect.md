@@ -6,11 +6,11 @@ tags: [vue3]
 categories: [vue3]
 ---
 
-注：以下说明基于 vue3 v3.0.7
+注：以下说明基于 `vue3 v3.0.7`
 
 `vue3` 的响应式模块位于 `reactivity` 目录下，我们以以下代码为例：
 
-```ts
+```js
 let test = reactive({
   count: 0
 })
@@ -20,7 +20,7 @@ let test = reactive({
 
 首先找到 [reactive](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/reactive.ts#L85) 方法
 
-```ts
+```js
 export function  (target: object) {
   // 如果尝试观察一个只读的 proxy，返回 target 本身
   if (target && (target as Target)[ReactiveFlags.IS_READONLY]) {
@@ -37,7 +37,7 @@ export function  (target: object) {
 
 接着移步到 `166` 行，找到 `createReactiveObject`
 
-```ts
+```js
 function createReactiveObject(
   target: Target,
   isReadonly: boolean,
@@ -79,7 +79,7 @@ function createReactiveObject(
 
 此处使用的 `baseHandlers` 由 `reactive` 可知，调用的是[createGetter](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/baseHandlers.ts#L75)
 
-```ts
+```js
 export const mutableHandlers: ProxyHandler<object> = {
   get,
   set,
@@ -168,7 +168,7 @@ const arrayInstrumentations: Record<string, Function> = {}
 
 下面着一下关键的 [track](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L141)
 
-```ts
+```js
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   // 调用时需要 shouldTrack 和 activeEffect 为真
   if (!shouldTrack || activeEffect === undefined) {
@@ -197,7 +197,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown) {
 
 在 `track` 里提到了 `effect`，这里也来看一下，首先看一下器入口函数 [effect](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L55)
 
-```ts
+```js
 export function effect<T = any>(
   fn: () => T,
   options: ReactiveEffectOptions = EMPTY_OBJ
@@ -274,7 +274,7 @@ function cleanup(effect: ReactiveEffect) {
 
 找到 [createSetter](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/baseHandlers.ts#L132)
 
-```ts
+```js
 function createSetter(shallow = false) {
   return function set(
     target: object,
@@ -312,7 +312,7 @@ function createSetter(shallow = false) {
 
 这里在最后调用了关键的方法 [trigger](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L167)
 
-```ts
+```js
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -367,7 +367,7 @@ export function trigger(
 
 `vue` 中的使用示例 [setupRenderEffect](https://github.com/vuejs/vue-next/blob/master/packages/runtime-core/src/renderer.ts#L1389)
 
-```ts
+```js
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,

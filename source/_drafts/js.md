@@ -82,7 +82,7 @@ API 保持高度的一致性可以带来更多的便捷
   set state(v) {}
 
 ## svg 转图片
-'data:image/svg+xml;charset=utf-8,' + svg.replace(/#/g, '%23').replace(/\n/g, '%0A')
+`url('data:image/svg+xml;charset=utf-8,${ptzImg.replace(/#/g, '%23').replace(/\n/g, '%0A')}')`
 
 ## 压缩图片
 

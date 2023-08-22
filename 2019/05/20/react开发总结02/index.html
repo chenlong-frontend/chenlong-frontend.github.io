@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ui 到接口，还是接口到 ui？是先写 ui，还是先写接口，有些时候不是我们能够控制的，比如有时候接口还没设计好，有时候 ui 设计慢了一步。 首先是从 ui 到接口的开发过程，顺序大致如下：  拿到 ui 图之后我目前的做法是先通过 html 和 css 将页面绘制出来，如果不是套用组件的话，css 采用 BEM 来写，方便后面拆分组件。 页面 ui 全部完成之后就到了拆分组件的时候了，大致按照">
+<meta property="og:type" content="article">
+<meta property="og:title" content="react的一些总结 02">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2019/05/20/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9302/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="ui 到接口，还是接口到 ui？是先写 ui，还是先写接口，有些时候不是我们能够控制的，比如有时候接口还没设计好，有时候 ui 设计慢了一步。 首先是从 ui 到接口的开发过程，顺序大致如下：  拿到 ui 图之后我目前的做法是先通过 html 和 css 将页面绘制出来，如果不是套用组件的话，css 采用 BEM 来写，方便后面拆分组件。 页面 ui 全部完成之后就到了拆分组件的时候了，大致按照">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-05-20T09:30:26.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.973Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="react">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2019/05/20/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9302/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2019/05/20/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9302/","path":"2019/05/20/react开发总结02/","title":"react的一些总结 02"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>react的一些总结 02 | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ui-%E5%88%B0%E6%8E%A5%E5%8F%A3%EF%BC%8C%E8%BF%98%E6%98%AF%E6%8E%A5%E5%8F%A3%E5%88%B0-ui%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">ui 到接口，还是接口到 ui？</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2019/05/20/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9302/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="react的一些总结 02 | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          react的一些总结 02
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-05-20 17:30:26" itemprop="dateCreated datePublished" datetime="2019-05-20T17:30:26+08:00">2019-05-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/react/" itemprop="url" rel="index"><span itemprop="name">react</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="ui-到接口，还是接口到-ui？"><a href="#ui-到接口，还是接口到-ui？" class="headerlink" title="ui 到接口，还是接口到 ui？"></a>ui 到接口，还是接口到 ui？</h2><p>是先写 ui，还是先写接口，有些时候不是我们能够控制的，比如有时候接口还没设计好，有时候 ui 设计慢了一步。</p>
+<p>首先是从 ui 到接口的开发过程，顺序大致如下：</p>
+<ol>
+<li>拿到 ui 图之后我目前的做法是先通过 html 和 css 将页面绘制出来，如果不是套用组件的话，css 采用 BEM 来写，方便后面拆分组件。</li>
+<li>页面 ui 全部完成之后就到了拆分组件的时候了，大致按照 BEM 块或者功能模块将 ui 拆分到一个个文件里，在拆分组件的同时也需要完成这个组件的接口和事件。</li>
+<li>组件拆分完成后，定义好 redux 状态，并写好 action，并绑定到组件上，这个时候的数据还都是假数据，但业务逻辑应该都已经基本实现。</li>
+<li>状态定义完成之后，完成 api 对接即可。</li>
+</ol>
+<p>再看看接口到 ui，开发的过程可以看成是上面的反过来的情况：</p>
+<ol>
+<li>首先将 api 全部在文件里定义好。</li>
+<li>根据 api 定义规划 redux 状态的 action 和 state，预先将 action 和 state 都定义完。</li>
+<li>划分组件，除去公用组件，划分出来的组件应该都是相互独立的，他们通过 redux 通信。</li>
+<li>最后将这些组件组装为一个完整的页面，其实这一步和第三步差不多同时进行了。</li>
+</ol>
+<p>总结：从个人开发体验上来讲，我更喜欢从接口到 ui，开发效率更高，主要体现在，在写 ui 时所有的数据和状态 action 都定义好了，开发比较顺畅，而且根据接口和状态来拆分组件也比较科学，二次拆分情况较少。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/react/" rel="tag"># react</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/05/06/linux%E5%85%A5%E9%97%A8/" rel="prev" title="linux入门笔记">
+                  <i class="fa fa-angle-left"></i> linux入门笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/05/23/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9303/" rel="next" title="react之redux">
+                  react之redux <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

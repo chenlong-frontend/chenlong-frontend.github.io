@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="函数式编程在刚接触 js 的时候便听说了，16 年下半年便买了书来看，不过一直都不得甚解，现在再回过头来看看，慢慢理解 函数式编程技术 确定抽象，并为其构建函数。 利用已有的函数来构建更为复杂的抽象。 通过将现有的函数传给其他的函数来构建更加复杂的抽象。  高阶函数一个高阶函数应该可以执行下列至少一项操作：  以一个函数作为参数。 返回一个函数作为结果。 他是一等公民  一等公民函数 可以存储在变">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JS函数式编程01">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2019/02/18/JS%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B01/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="函数式编程在刚接触 js 的时候便听说了，16 年下半年便买了书来看，不过一直都不得甚解，现在再回过头来看看，慢慢理解 函数式编程技术 确定抽象，并为其构建函数。 利用已有的函数来构建更为复杂的抽象。 通过将现有的函数传给其他的函数来构建更加复杂的抽象。  高阶函数一个高阶函数应该可以执行下列至少一项操作：  以一个函数作为参数。 返回一个函数作为结果。 他是一等公民  一等公民函数 可以存储在变">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-02-18T14:21:16.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.861Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="javascript">
+<meta property="article:tag" content="函数式">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2019/02/18/JS%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B01/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2019/02/18/JS%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B01/","path":"2019/02/18/JS函数式编程01/","title":"JS函数式编程01"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>JS函数式编程01 | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B%E6%8A%80%E6%9C%AF"><span class="nav-number">1.</span> <span class="nav-text">函数式编程技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">高阶函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E7%AD%89%E5%85%AC%E6%B0%91%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">一等公民函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E3%80%81%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">函数、方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Applicarive-%E7%BC%96%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">Applicarive 编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E6%8A%BD%E8%B1%A1%E6%80%9D%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">函数抽象思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%85%B6%E4%BB%96%E5%87%BD%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0"><span class="nav-number">6.</span> <span class="nav-text">返回其他函数的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%AF%E9%87%8C%E5%8C%96"><span class="nav-number">7.</span> <span class="nav-text">柯里化</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2019/02/18/JS%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="JS函数式编程01 | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JS函数式编程01
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-02-18 22:21:16" itemprop="dateCreated datePublished" datetime="2019-02-18T22:21:16+08:00">2019-02-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/javascript/" itemprop="url" rel="index"><span itemprop="name">javascript</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>函数式编程在刚接触 js 的时候便听说了，16 年下半年便买了书来看，不过一直都不得甚解，现在再回过头来看看，慢慢理解</p>
+<h2 id="函数式编程技术"><a href="#函数式编程技术" class="headerlink" title="函数式编程技术"></a>函数式编程技术</h2><ol>
+<li>确定抽象，并为其构建函数。</li>
+<li>利用已有的函数来构建更为复杂的抽象。</li>
+<li>通过将现有的函数传给其他的函数来构建更加复杂的抽象。</li>
+</ol>
+<h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><p>一个高阶函数应该可以执行下列至少一项操作：</p>
+<ol>
+<li>以一个函数作为参数。</li>
+<li>返回一个函数作为结果。</li>
+<li>他是一等公民</li>
+</ol>
+<h3 id="一等公民函数"><a href="#一等公民函数" class="headerlink" title="一等公民函数"></a>一等公民函数</h3><ol>
+<li>可以存储在变量中。</li>
+<li>可以被存储在数组中的插槽中</li>
+<li>可以存储在对象的字段中</li>
+<li>可以根据需要来创建</li>
+<li>可以被传递到其他函数中</li>
+<li>可以被其他函数</li>
+</ol>
+<h2 id="函数、方法"><a href="#函数、方法" class="headerlink" title="函数、方法"></a>函数、方法</h2><p>函数：独立存在的函数。 方法：在对象的上下文中创建出来的函数。</p>
+<h2 id="Applicarive-编程"><a href="#Applicarive-编程" class="headerlink" title="Applicarive 编程"></a>Applicarive 编程</h2><p>函数 A 作为参数提供给函数 B，其衍生出来的集合中心编程的理念：用 100 个函数操作一个数据结构，比用 10 个函数操作 10 个数据结构要好。</p>
+<h2 id="函数抽象思考"><a href="#函数抽象思考" class="headerlink" title="函数抽象思考"></a>函数抽象思考</h2><p>以 repeat 函数为例，它以一个数字和一个值为参数，将该值进行多次赋值，并放入一个数组中:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">repeat</span>(<span class="params">time, VALUE</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> _.<span class="title function_">map</span>(_.<span class="title function_">range</span>(times), <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable constant_">VALUE</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">repeat</span>(<span class="number">4</span>, <span class="string">&#x27;major&#x27;</span>)</span><br><span class="line"><span class="comment">// =&gt; [&#x27;major&#x27;, &#x27;major&#x27;,&#x27;major&#x27;,&#x27;major&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<p>将一个值重复多次是可以的，但将运算重复多次则更好，下面改进一下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">repeatedly</span>(<span class="params">time, fun</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> _.<span class="title function_">map</span>(_.<span class="title function_">range</span>(times), fun)</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">repeatedly</span>(<span class="number">3</span>, <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Math</span>.<span class="title function_">random</span>() * <span class="number">10</span> + <span class="number">1</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// =&gt; [1,3,8]</span></span><br></pre></td></tr></table></figure>
+
+<p>函数<code>repeatedly</code>是展示函数式思维方式力量的一个很好的例证。通过将参数从值替换为函数，在调用端，我们可以用一个可以填充任何东西的数组来替换一个固定的值。</p>
+<p>我们将一个在<code>repeat</code>中使用静态值的函数变成了一个接受函数的<code>repeatedly</code>函数，这确实使<code>repeatedly</code>更加开放，但它的通用性仍没有达到期望。我们仍需要一个确定需要调用给定的函数多少次的数值。我们常常会准确地知道函数应该被调用多少次，但有时候退出并不取决于“次数”，而是条件。我们可以定义另一个名为<code>iterateUntil</code>的</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">iterateUntil</span>(<span class="params">fun, check, init</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> ret = []</span><br><span class="line">  <span class="keyword">var</span> result = <span class="title function_">fun</span>(init)</span><br><span class="line">  <span class="keyword">while</span> (<span class="title function_">check</span>(result)) &#123;</span><br><span class="line">    ret.<span class="title function_">push</span>(result)</span><br><span class="line">    result = <span class="title function_">fun</span>(result)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> ret</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数<code>iterateUntil</code>接收两个函数：一个用来执行一些动作，另外一个用来结果检查，当结果满足“结束”值时返回<code>false</code>。这算得上是真正的将<code>repeatedly</code>带到一个新的水平，现在甚至连重复的次数都是开放的，受到一个函数执行结果的影响。下面是使用该函数的一个实例：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">iterateUntil</span>(</span><br><span class="line">  <span class="keyword">function</span>(<span class="params">n</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> n + n</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">function</span>(<span class="params">n</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> n &lt;= <span class="number">1024</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="number">1</span></span><br><span class="line">)</span><br><span class="line"><span class="comment">//=&gt; [2,4,8,16,32,64,128,256,512,1024</span></span><br></pre></td></tr></table></figure>
+
+<p>正如你所知，在使用<code>repeatdly</code>来实现相同的功能之前，为了得到正确的结果数组，需要提前确定调用为我们的函数的次数，如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">repeatedly</span>(<span class="number">10</span>, <span class="keyword">function</span>(<span class="params">exp</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Math</span>.<span class="title function_">pow</span>(<span class="number">2</span>, exp + <span class="number">1</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">//=&gt; [2,4,8,16,32,64,128,256,512,102</span></span><br></pre></td></tr></table></figure>
+
+<p>有时候，你可能知道需要计算多少次，但有时候你只知道计算何时停止。<code>iterateUntil</code>提供的另外一个优点是，循环体是一个前馈函数，即一些函数的执行结果被当做下一个函数的参数。</p>
+<h2 id="返回其他函数的函数"><a href="#返回其他函数的函数" class="headerlink" title="返回其他函数的函数"></a>返回其他函数的函数</h2><p>下面函数使用了一个忽略其参数并仅仅返回一个常量的函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">repeatedly</span>(<span class="number">3</span>, <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">&#x27;Odelay!&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这种返回一个常量的函数非常有用，所以几乎是函数式编程的一个设计模式，经常被简称为 k。其实现方式为下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">k</span>(<span class="params">VALUE</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable constant_">VALUE</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>k</code>的行为可以用来解释闭包的一些关键点。首先，闭包会捕获一个值，并多次返回相同的值</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> f = <span class="title function_">k</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;&#125;)</span><br><span class="line"><span class="title function_">f</span>() === f</span><br><span class="line"><span class="comment">// =&gt; true</span></span><br></pre></td></tr></table></figure>
+
+<p>该函数总是产生一个确定的值。接下来用 k 来替换之前的匿名函数，会更加简洁一些：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">repeatedly</span>(<span class="number">3</span>, <span class="title function_">k</span>(<span class="string">&#x27;Odelay&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>像<code>k</code>这样的函数被称为组合子</p>
+<h2 id="柯里化"><a href="#柯里化" class="headerlink" title="柯里化"></a>柯里化</h2><p>柯里化的编程思想是使用一个函数来构建一个新的函数。柯里化函数逐渐返回消耗参数的函数，直到所有的参数耗尽柯里化从右往左比较好，像 javascript 这样的语言，可以通过任意数量的参数，从右到左让你能修复可选参数的值。下面的例子可以说明参数方向选择的差异：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">letfCurryDiv</span>(<span class="params">n</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">d</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> n / d</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">rightCurryDiv</span>(<span class="params">d</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">n</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> n / d</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用除法运算很好的说明了柯里化方向的区别，因为结果会因为参数顺序而变化。观察 <code>letfCurryDiv</code> 函数如何柯里化参数产生结果的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> divide10by = <span class="title function_">leftCurryDiv</span>(<span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+
+<p>函数以<code>10</code>参数<code>10</code>初始化并命名<code>divide10By</code>，该函数配置为做<code>10/?</code>操作，其中?是下次调用时最右边的参数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">divide10by</span>(<span class="number">2</span>)</span><br><span class="line"><span class="comment">// =&gt; 5</span></span><br></pre></td></tr></table></figure>
+
+<p>第二次调用柯里函数开始执行 10&#x2F;2 操作。然而，如果使用 rightCurryDiv 函数，情况就完全不一样:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> divideBy10 = <span class="title function_">rightCurryDiv</span>(<span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+
+<p>现在命名为 divideBy10 的柯里函数体变化?&#x2F;10，在执行前等待最左边的参数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">divideBy10</span>(<span class="number">2</span>)</span><br><span class="line"><span class="comment">// =&gt;0.2</span></span><br></pre></td></tr></table></figure>
+
+<p>上述用法都是手动柯里化，下面是一个自动柯里化参数的例子，这是一个简单的高阶函数，他接受一个函数，并返回一个只接收一个参数的函数，将其命名为<code>curry</code>，实现如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">curry</span>(<span class="params">fun</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">arg</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">fun</span>(arg)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>curry</code>的操作可以概括为：接受一个函数，返回一个只接收一个参数的函数</p>
+<p>这似乎是一个相当没用的函数，在许多函数式编程语言中，很少有令人信服的理由来提供一个像 curry 这样无修饰的代理，javascript 中，函数可能会接收期望之外的“特化”参数。例如：javascript 函数 parseInt 接受一个字符串并返回其相应的整数，此外其还可以接受一个可选的第二参数。</p>
+<p>柯里化两参数和三参数的函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 柯里化两参数</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">curry2</span>(<span class="params">fun</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">secondArg</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">firstArg</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">fun</span>(firstArg, secondArg)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 柯里化三参数</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">curry3</span>(<span class="params">fun</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">last</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">middle</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">first</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">fun</span>(first, middle, last)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/javascript/" rel="tag"># javascript</a>
+              <a href="/tags/%E5%87%BD%E6%95%B0%E5%BC%8F/" rel="tag"># 函数式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/02/13/treeInReact/" rel="prev" title="rc-tree 源码解读">
+                  <i class="fa fa-angle-left"></i> rc-tree 源码解读
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/02/22/%E6%A8%A1%E5%9D%97%E6%89%93%E5%8C%85/webpack01/" rel="next" title="webpack -ts">
+                  webpack -ts <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="需求背景因为 webrtc 项目和 pc 客户端（基于 electron）的，在客户端里，嵌入的是本地网页，里面用到了 electron 底层的数据库存放数据，将这套代码移植到 web 上后，调用底层的 db 方法不存在了，衍生出了这个需求 存储技术选型因为在后续开发里 db 不再允许使用了，之前的已有由于影响的范围比较广，就没有删除，所以 db 里存储的数据是可控可知的，考虑到数据量比较少，就选">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器简单数据库模拟(非sql)">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2022/06/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%AE%80%E5%8D%95%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A8%A1%E6%8B%9F/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="需求背景因为 webrtc 项目和 pc 客户端（基于 electron）的，在客户端里，嵌入的是本地网页，里面用到了 electron 底层的数据库存放数据，将这套代码移植到 web 上后，调用底层的 db 方法不存在了，衍生出了这个需求 存储技术选型因为在后续开发里 db 不再允许使用了，之前的已有由于影响的范围比较广，就没有删除，所以 db 里存储的数据是可控可知的，考虑到数据量比较少，就选">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-15T14:21:16.000Z">
+<meta property="article:modified_time" content="2023-08-22T07:56:09.119Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="JavaScript db">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2022/06/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%AE%80%E5%8D%95%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A8%A1%E6%8B%9F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2022/06/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%AE%80%E5%8D%95%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A8%A1%E6%8B%9F/","path":"2022/06/15/浏览器简单数据库模拟/","title":"浏览器简单数据库模拟(非sql)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>浏览器简单数据库模拟(非sql) | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9C%80%E6%B1%82%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">需求背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">存储技术选型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">代码实现</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2022/06/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%AE%80%E5%8D%95%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A8%A1%E6%8B%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="浏览器简单数据库模拟(非sql) | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          浏览器简单数据库模拟(非sql)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-06-15 22:21:16" itemprop="dateCreated datePublished" datetime="2022-06-15T22:21:16+08:00">2022-06-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 15:56:09" itemprop="dateModified" datetime="2023-08-22T15:56:09+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h2><p>因为 webrtc 项目和 pc 客户端（基于 electron）的，在客户端里，嵌入的是本地网页，里面用到了 electron 底层的数据库存放数据，将这套代码移植到 web 上后，调用底层的 db 方法不存在了，衍生出了这个需求</p>
+<h2 id="存储技术选型"><a href="#存储技术选型" class="headerlink" title="存储技术选型"></a>存储技术选型</h2><p>因为在后续开发里 db 不再允许使用了，之前的已有由于影响的范围比较广，就没有删除，所以 db 里存储的数据是可控可知的，考虑到数据量比较少，就选用了 localStorage 进行存储</p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><p>主要实现逻辑是，每一个 table 对应一条 localStorage 存储记录的 key，table 里的值用 value 来记录，因为客户端部分调用数据库的时候用的是方法而非直接 sql，所以我这边也无需实现 sql 方法，取而代之的是手动实现 table 的增删改查</p>
+<p>这个属于开发中的一个小插曲，感觉比较有意思，记录一下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// db.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; cloneDeep &#125; <span class="keyword">from</span> <span class="string">&#x27;lodash&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">enum</span> <span class="title class_">TableName</span> &#123;</span><br><span class="line">    configTable = <span class="string">&#x27;configTable&#x27;</span>,</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="attr">tableField</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt;&gt; = &#123;&#125;</span><br><span class="line"><span class="keyword">const</span> <span class="attr">tableFieldPrimaryKey</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span>[]&gt; = &#123;&#125;</span><br><span class="line"><span class="keyword">const</span> <span class="attr">tableAutoincrement</span>: <span class="built_in">string</span>[] = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="attr">table</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">any</span>[]&gt; = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> prefix = <span class="string">&#x27;WEBTANG_STORE_V1_&#x27;</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">DB</span> &#123;</span><br><span class="line">    <span class="title function_">save</span>(<span class="attr">key</span>: <span class="built_in">string</span>, <span class="attr">value</span>: <span class="built_in">unknown</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="variable language_">localStorage</span>.<span class="title function_">setItem</span>(<span class="string">`<span class="subst">$&#123;prefix&#125;</span><span class="subst">$&#123;key&#125;</span>`</span>, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(value))</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">error</span>(e)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">get</span>(<span class="attr">key</span>: <span class="built_in">string</span>): <span class="built_in">unknown</span>[] &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> value = <span class="variable language_">localStorage</span>.<span class="title function_">getItem</span>(<span class="string">`<span class="subst">$&#123;prefix&#125;</span><span class="subst">$&#123;key&#125;</span>`</span>)</span><br><span class="line">            <span class="keyword">const</span> result = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(value)</span><br><span class="line">            <span class="keyword">return</span> <span class="title class_">Array</span>.<span class="title function_">isArray</span>(result) ? result : []</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            <span class="keyword">return</span> []</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">exec</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;forbid call this function!&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">getDefaultField</span>(<span class="attr">name</span>: <span class="title class_">TableName</span>): <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">cloneDeep</span>(tableField[name])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">setTableAutoincrement</span>(<span class="title class_">TableName</span>: <span class="title class_">TableName</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">        tableAutoincrement.<span class="title function_">push</span>(<span class="title class_">TableName</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">getAllTableData</span>(<span class="title class_">TableName</span>: <span class="title class_">TableName</span>): <span class="built_in">any</span>[] &#123;</span><br><span class="line">        <span class="keyword">return</span> table[<span class="title class_">TableName</span>]</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">setTable</span>(<span class="attr">tableName</span>: <span class="title class_">TableName</span>, <span class="attr">source</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt;): <span class="built_in">void</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> defaultField = <span class="variable language_">this</span>.<span class="title function_">getDefaultField</span>(tableName)</span><br><span class="line">        <span class="keyword">const</span> datas = table[tableName]</span><br><span class="line">        <span class="keyword">const</span> keys = <span class="title class_">Object</span>.<span class="title function_">keys</span>(source)</span><br><span class="line">        <span class="keyword">const</span> primaryKey = tableFieldPrimaryKey[tableName]</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">typeof</span> source[key] === <span class="string">&#x27;undefined&#x27;</span>) &#123;</span><br><span class="line">                source[key] = defaultField[key]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (primaryKey) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">const</span> data <span class="keyword">of</span> datas) &#123;</span><br><span class="line">                <span class="keyword">const</span> isNeedUpdate = primaryKey.<span class="title function_">every</span>(<span class="function"><span class="params">key</span> =&gt;</span> source[key] === data[key])</span><br><span class="line">                <span class="keyword">if</span> (isNeedUpdate) &#123;</span><br><span class="line">                    <span class="title class_">Object</span>.<span class="title function_">assign</span>(data, source)</span><br><span class="line">                    <span class="variable language_">this</span>.<span class="title function_">save</span>(tableName, datas)</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (tableAutoincrement.<span class="title function_">indexOf</span>(tableName) &gt; -<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (datas.<span class="property">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">const</span> &#123; id &#125; = datas[datas.<span class="property">length</span> - <span class="number">1</span>]</span><br><span class="line">                source.<span class="property">id</span> = id + <span class="number">1</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                source.<span class="property">id</span> = <span class="number">1</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        datas.<span class="title function_">push</span>(source)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">save</span>(tableName, datas)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">updateTable</span>(<span class="attr">tableName</span>: <span class="title class_">TableName</span>, <span class="attr">source</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt;, <span class="attr">updateKey</span>: <span class="built_in">string</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> defaultField = <span class="variable language_">this</span>.<span class="title function_">getDefaultField</span>(tableName)</span><br><span class="line">        <span class="keyword">const</span> datas = table[tableName]</span><br><span class="line">        <span class="keyword">const</span> keys = <span class="title class_">Object</span>.<span class="title function_">keys</span>(source)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">of</span> keys) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">typeof</span> source[key] === <span class="string">&#x27;undefined&#x27;</span>) &#123;</span><br><span class="line">                source[key] = defaultField[key]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">const</span> data <span class="keyword">of</span> datas) &#123;</span><br><span class="line">            <span class="keyword">const</span> isUpdate = updateKey.<span class="title function_">every</span>(<span class="function"><span class="params">key</span> =&gt;</span> data[key] === source[key])</span><br><span class="line">            <span class="keyword">if</span> (isUpdate) &#123;</span><br><span class="line">                <span class="title class_">Object</span>.<span class="title function_">assign</span>(data, source)</span><br><span class="line">                <span class="variable language_">this</span>.<span class="title function_">save</span>(tableName, datas)</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">clearTable</span>(<span class="attr">tableName</span>: <span class="title class_">TableName</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">        table[tableName] = []</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">save</span>(tableName, [])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">initTable</span>(<span class="attr">name</span>: <span class="title class_">TableName</span>, <span class="attr">field</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt;, <span class="attr">primaryKey</span>: <span class="built_in">string</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">        tableField[name] = field</span><br><span class="line">        table[name] = <span class="variable language_">this</span>.<span class="title function_">get</span>(name)</span><br><span class="line">        tableFieldPrimaryKey[name] = primaryKey</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *<span class="doctag">@function</span> createDate,根据给定的日期字符串，创建日期对象</span></span><br><span class="line"><span class="comment">     *<span class="doctag">@param</span> &#123;<span class="type">String</span>&#125; timeStr,日期对象字符串</span></span><br><span class="line"><span class="comment">     *<span class="doctag">@return</span> &#123;<span class="type">DateObject</span>&#125; 日期对象，指定日期字符串生成的日期对象</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="title function_">createDate</span>(<span class="attr">timeStr</span>: <span class="built_in">string</span>): <span class="title class_">Date</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> _timeStr = timeStr.<span class="title function_">replace</span>(<span class="regexp">/-/g</span>, <span class="string">&#x27;/&#x27;</span>) <span class="comment">//</span></span><br><span class="line">        <span class="keyword">const</span> date = <span class="keyword">new</span> <span class="title class_">Date</span>(_timeStr)</span><br><span class="line">        <span class="keyword">return</span> date</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sql.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; cloneDeep &#125; <span class="keyword">from</span> <span class="string">&#x27;lodash&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">TableName</span>, <span class="variable constant_">DB</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;./db&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> db = <span class="keyword">new</span> <span class="title function_">DB</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="variable constant_">SQL</span> = &#123;</span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">initConfigTable</span>(): <span class="title class_">Promise</span>&lt;<span class="built_in">any</span>&gt; &#123;</span><br><span class="line">    db.<span class="title function_">initTable</span>(<span class="title class_">TableName</span>.<span class="property">configTable</span>, &#123; <span class="attr">name</span>: <span class="string">&#x27;&#x27;</span>, <span class="attr">value</span>: <span class="string">&#x27;&#x27;</span> &#125;, [<span class="string">&#x27;name&#x27;</span>]);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">setConfigFromTable</span>(<span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">value</span>: <span class="built_in">string</span>): <span class="title class_">Promise</span>&lt;<span class="built_in">any</span>&gt; &#123;</span><br><span class="line">    db.<span class="title function_">setTable</span>(<span class="title class_">TableName</span>.<span class="property">configTable</span>, &#123; name, value &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="title function_">getConfigFromTable</span>(<span class="attr">name</span>: <span class="built_in">string</span>): <span class="built_in">any</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> datas = db.<span class="title function_">getAllTableData</span>(<span class="title class_">TableName</span>.<span class="property">configTable</span>);</span><br><span class="line">    <span class="keyword">const</span> result = datas.<span class="title function_">filter</span>(<span class="function">(<span class="params">d</span>) =&gt;</span> d.<span class="property">name</span> === name);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">getCmdLineFromDB</span>(): <span class="built_in">any</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> datas = db.<span class="title function_">getAllTableData</span>(<span class="title class_">TableName</span>.<span class="property">configTable</span>);</span><br><span class="line">    <span class="keyword">return</span> datas.<span class="title function_">find</span>(<span class="function">(<span class="params">d</span>) =&gt;</span> d.<span class="property">name</span> === <span class="string">&#x27;conferenceSession&#x27;</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JavaScript-db/" rel="tag"># JavaScript db</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/02/18/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%9A%84ts%E9%87%8D%E6%9E%84/" rel="prev" title="微信小程序的ts重构">
+                  <i class="fa fa-angle-left"></i> 微信小程序的ts重构
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="最近工作中在使用 git 来管理项目，以下是对于一些自己实际遇到一些坑的总结。 git clone之前遇到一个比较特殊的情况，同一个项目下两个分支一个是开发代码，一个是文档工具，切换分支不太方便，通过以下方式来重命名文件夹名称。 1git clone 项目地址 重命名  添加本地仓库刚开始的时候我是使用git add .来添加修改文件到本地仓库的，但有一个由于我的疏忽，我没有在根目下执行这条指令，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="git">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2019/03/26/git/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="最近工作中在使用 git 来管理项目，以下是对于一些自己实际遇到一些坑的总结。 git clone之前遇到一个比较特殊的情况，同一个项目下两个分支一个是开发代码，一个是文档工具，切换分支不太方便，通过以下方式来重命名文件夹名称。 1git clone 项目地址 重命名  添加本地仓库刚开始的时候我是使用git add .来添加修改文件到本地仓库的，但有一个由于我的疏忽，我没有在根目下执行这条指令，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-26T12:11:50.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.971Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2019/03/26/git/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2019/03/26/git/","path":"2019/03/26/git/","title":"git"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>git | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#git-clone"><span class="nav-number">1.</span> <span class="nav-text">git clone</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93"><span class="nav-number">2.</span> <span class="nav-text">添加本地仓库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B0%E5%BB%BA%E5%88%86%E6%94%AF"><span class="nav-number">3.</span> <span class="nav-text">新建分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%87%E6%8D%A2%E6%9C%AC%E5%9C%B0%E9%BB%98%E8%AE%A4%E5%88%86%E6%94%AF"><span class="nav-number">4.</span> <span class="nav-text">切换本地默认分支</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git-commit-%E5%9B%9E%E9%80%80"><span class="nav-number">5.</span> <span class="nav-text">git commit 回退</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%8D%A2%E8%BF%9C%E7%A8%8B%E5%9C%B0%E5%9D%80"><span class="nav-number">6.</span> <span class="nav-text">更换远程地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git-%E5%8C%BA%E5%88%86%E5%A4%A7%E5%B0%8F%E5%86%99"><span class="nav-number">7.</span> <span class="nav-text">git 区分大小写</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#git-%E7%94%A8%E6%88%B7%E5%90%8D%E9%82%AE%E7%AE%B1%E7%AD%89%E9%85%8D%E7%BD%AE"><span class="nav-number">8.</span> <span class="nav-text">git 用户名邮箱等配置</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2019/03/26/git/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="git | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          git
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-03-26 20:11:50" itemprop="dateCreated datePublished" datetime="2019-03-26T20:11:50+08:00">2019-03-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/git/" itemprop="url" rel="index"><span itemprop="name">git</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>最近工作中在使用 git 来管理项目，以下是对于一些自己实际遇到一些坑的总结。</p>
+<h2 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h2><p>之前遇到一个比较特殊的情况，同一个项目下两个分支一个是开发代码，一个是文档工具，切换分支不太方便，通过以下方式来重命名文件夹名称。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone 项目地址 重命名</span><br></pre></td></tr></table></figure>
+
+<h2 id="添加本地仓库"><a href="#添加本地仓库" class="headerlink" title="添加本地仓库"></a>添加本地仓库</h2><p>刚开始的时候我是使用<code>git add .</code>来添加修改文件到本地仓库的，但有一个由于我的疏忽，我没有在根目下执行这条指令，导致一些修改文件没有被提交。在这件事之后我改用<code>git add --all</code>来添加所有的改动，并使用<code>git status</code>查看文件是否正确。</p>
+<h2 id="新建分支"><a href="#新建分支" class="headerlink" title="新建分支"></a>新建分支</h2><p>当需要对一个项目进行大改一般会新建一个分支，使用<code>git checkout -b 分支名称</code>来新建一个分支并同时切换到那个分支上，使用<code>git checkout 分支名称</code>来切换分支，使用<code>git merge 分支名称</code>将指定分支合并到当前分支。</p>
+<h2 id="切换本地默认分支"><a href="#切换本地默认分支" class="headerlink" title="切换本地默认分支"></a>切换本地默认分支</h2><p>当从主分支切换到其他分支时，每次提交拉取代码时都要加上<code>origin 分支名称</code>，可使用<code>git push --set-upstream origin 分支名称</code>将指定分支切换为本地默认分支。</p>
+<h2 id="git-commit-回退"><a href="#git-commit-回退" class="headerlink" title="git commit 回退"></a>git commit 回退</h2><p>有时<code>commit</code>代码之后发现把无用的东西提交了，可使用<code>git log</code>打印出最近的<code>commit</code>记录，然后通过<code>git reset --soft|--mixed|--hard &lt;commit_id&gt;</code>来进行<code>commit</code>回退。</p>
+<ul>
+<li>mixed 会保留源码,只是将 git commit 和 index 信息回退到了某个版本.</li>
+<li>soft 保留源码,只回退到 commit 信息到某个版本.不涉及 index 的回退,如果还需要提交,直接 commit 即可.</li>
+<li>hard 源码也会回退到某个版本,commit 和 index 都会回退到某个版本.(注意,这种方式是改变本地代码仓库源码)</li>
+</ul>
+<p>提交时使用 <code>git push -f</code></p>
+<h2 id="更换远程地址"><a href="#更换远程地址" class="headerlink" title="更换远程地址"></a>更换远程地址</h2><p>遇到过一次项目远程地址更换，可使用<code>git remote set-url origin https://gitee.com/yunbin_product/jellyfish.git</code>进行更换</p>
+<h2 id="git-区分大小写"><a href="#git-区分大小写" class="headerlink" title="git 区分大小写"></a>git 区分大小写</h2><p>记得一次我修改了某文件夹的首字母的大小写，结果提交的时候并没有产生修改记录，导致了其他人运行项目时出错，后经排查是 git 忽略了大小写，可使用如下配置正确区分大小写。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config core.ignorecase false</span><br></pre></td></tr></table></figure>
+
+<h2 id="git-用户名邮箱等配置"><a href="#git-用户名邮箱等配置" class="headerlink" title="git 用户名邮箱等配置"></a>git 用户名邮箱等配置</h2><p>使用<code>git config --list</code>可列出所有的 git 配置，使用如下方式配置用户名邮箱等</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name &quot;1016482011&quot;</span><br><span class="line">git config --global user.email 2956957982@qq.com</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/git/" rel="tag"># git</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/03/22/localStorage/" rel="prev" title="关于设置localStorage过期时间">
+                  <i class="fa fa-angle-left"></i> 关于设置localStorage过期时间
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/04/12/react%E8%84%9A%E6%89%8B%E6%9E%B6/" rel="next" title="react脚手架">
+                  react脚手架 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

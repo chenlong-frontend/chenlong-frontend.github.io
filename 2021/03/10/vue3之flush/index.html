@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="注：以下说明基于 vue3 v3.0.7 以下代码，来自于 scheduler 123456789&#x2F;&#x2F; 是否正在刷新let isFlushing &#x3D; false&#x2F;&#x2F; 是否等待刷新，true表示正在等待刷新let isFlushPending &#x3D; false&#x2F;&#x2F; 当前刷新队列指针位置let flushIndex &#x3D; 0&#x2F;&#x2F; 刷新队列const queue: SchedulerJob[] &#x3D; []">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vue3之flush">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2021/03/10/vue3%E4%B9%8Bflush/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="注：以下说明基于 vue3 v3.0.7 以下代码，来自于 scheduler 123456789&#x2F;&#x2F; 是否正在刷新let isFlushing &#x3D; false&#x2F;&#x2F; 是否等待刷新，true表示正在等待刷新let isFlushPending &#x3D; false&#x2F;&#x2F; 当前刷新队列指针位置let flushIndex &#x3D; 0&#x2F;&#x2F; 刷新队列const queue: SchedulerJob[] &#x3D; []">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-03-10T09:38:46.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.975Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="vue3">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2021/03/10/vue3%E4%B9%8Bflush/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2021/03/10/vue3%E4%B9%8Bflush/","path":"2021/03/10/vue3之flush/","title":"vue3之flush"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>vue3之flush | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2021/03/10/vue3%E4%B9%8Bflush/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="vue3之flush | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vue3之flush
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-03-10 17:38:46" itemprop="dateCreated datePublished" datetime="2021-03-10T17:38:46+08:00">2021-03-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/vue3/" itemprop="url" rel="index"><span itemprop="name">vue3</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>注：以下说明基于 <code>vue3 v3.0.7</code></p>
+<p>以下代码，来自于 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/runtime-core/src/scheduler.ts">scheduler</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 是否正在刷新</span></span><br><span class="line"><span class="keyword">let</span> isFlushing = <span class="literal">false</span></span><br><span class="line"><span class="comment">// 是否等待刷新，true表示正在等待刷新</span></span><br><span class="line"><span class="keyword">let</span> isFlushPending = <span class="literal">false</span></span><br><span class="line"><span class="comment">// 当前刷新队列指针位置</span></span><br><span class="line"><span class="keyword">let</span> flushIndex = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 刷新队列</span></span><br><span class="line"><span class="keyword">const</span> <span class="attr">queue</span>: <span class="title class_">SchedulerJob</span>[] = []</span><br></pre></td></tr></table></figure>
+
+<p>外部调用一般为 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/runtime-core/src/scheduler.ts#L79">queueJob</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">queueJob</span>(<span class="params">job: SchedulerJob</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    (!queue.<span class="property">length</span> ||</span><br><span class="line">      !queue.<span class="title function_">includes</span>(</span><br><span class="line">        job,</span><br><span class="line">        isFlushing &amp;&amp; job.<span class="property">allowRecurse</span> ? flushIndex + <span class="number">1</span> : flushIndex</span><br><span class="line">      )) &amp;&amp;</span><br><span class="line">    job !== currentPreFlushParentJob</span><br><span class="line">  ) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查看这个任务是否</span></span><br><span class="line">    <span class="keyword">const</span> pos = <span class="title function_">findInsertionIndex</span>(job)</span><br><span class="line">    <span class="keyword">if</span> (pos &gt; -<span class="number">1</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果队列中已经存在此任务，则插在此任务后面</span></span><br><span class="line">      queue.<span class="title function_">splice</span>(pos, <span class="number">0</span>, job)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 压入队列</span></span><br><span class="line">      queue.<span class="title function_">push</span>(job)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">queueFlush</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>queueJob</code> 的主要作用就是将传入的任务，压入队列。任务压入完毕之后调用了 <code>queueFlush</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">queueFlush</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!isFlushing &amp;&amp; !isFlushPending) &#123;</span><br><span class="line">    <span class="comment">// 标识为正在等待刷新</span></span><br><span class="line">    isFlushPending = <span class="literal">true</span></span><br><span class="line">    <span class="comment">// 设置当前执行的任务</span></span><br><span class="line">    currentFlushPromise = resolvedPromise.<span class="title function_">then</span>(flushJobs)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>queueFlush</code> 设置了当前等待刷新状态，表明当前有任务正在等待刷新。其后调用了 <code>flushJobs</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">flushJobs</span>(<span class="params">seen?: CountMap</span>) &#123;</span><br><span class="line">  <span class="comment">// 转换状态，设置正在刷新状态</span></span><br><span class="line">  isFlushPending = <span class="literal">false</span></span><br><span class="line">  isFlushing = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">flushPreFlushCbs</span>(seen)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 再刷新前给队列排序</span></span><br><span class="line">  <span class="comment">// 确保：</span></span><br><span class="line">  <span class="comment">// 1. 组件是按照父节点到子节点顺序更新</span></span><br><span class="line">  <span class="comment">//（因为父节点总是在子节点之前被创建，这样父节点的 effect 的优先权会更小）</span></span><br><span class="line">  <span class="comment">// 2. 如果一个组件在父组件更新的时候被卸载了，这个组件的更新操作将会被跳过</span></span><br><span class="line">  queue.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> <span class="title function_">getId</span>(a) - <span class="title function_">getId</span>(b))</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 依次执行队列里的job</span></span><br><span class="line">    <span class="keyword">for</span> (flushIndex = <span class="number">0</span>; flushIndex &lt; queue.<span class="property">length</span>; flushIndex++) &#123;</span><br><span class="line">      <span class="keyword">const</span> job = queue[flushIndex]</span><br><span class="line">      <span class="keyword">if</span> (job) &#123;</span><br><span class="line">        <span class="title function_">callWithErrorHandling</span>(job, <span class="literal">null</span>, <span class="title class_">ErrorCodes</span>.<span class="property">SCHEDULER</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// 指正归零</span></span><br><span class="line">    flushIndex = <span class="number">0</span></span><br><span class="line">    <span class="comment">// 队列清零</span></span><br><span class="line">    queue.<span class="property">length</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="title function_">flushPostFlushCbs</span>(seen)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 结束刷新</span></span><br><span class="line">    isFlushing = <span class="literal">false</span></span><br><span class="line">    currentFlushPromise = <span class="literal">null</span></span><br><span class="line">    <span class="comment">// 在队列清空前持续刷新</span></span><br><span class="line">    <span class="keyword">if</span> (queue.<span class="property">length</span> || pendingPostFlushCbs.<span class="property">length</span>) &#123;</span><br><span class="line">      <span class="title function_">flushJobs</span>(seen)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结：<code>vue</code> 异步刷新的原理在于，外部的 <code>job</code> 持续进来之后，如果会持续压入队列</p>
+<p>如果当前没有任务在等待或者没有正在任务在刷新，就会发起一个微任务，将任务设置为等待状态</p>
+<p>如果当前有刷新正在进行，这个<code>job</code>也会顺带着一起处理</p>
+<p>由于任务是放在微任务队列里的，所以是异步的</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vue3/" rel="tag"># vue3</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/09/vue3%E4%B9%8Beffect/" rel="prev" title="vue3 响应原理">
+                  <i class="fa fa-angle-left"></i> vue3 响应原理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/14/hook%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="next" title="hook">
+                  hook <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

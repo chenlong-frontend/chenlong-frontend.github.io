@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="队列在进入正题之前，我们先了解一下浏览器内的队列，可以参考一下下图：  消息队列中的任务类型大致可分为：输入事件(鼠标滚动、点击、移动)、微任务、文件读写、WebSocket、JavaScript 定时器等等，另外还有页面相关事件，例如 JavaScript 执行、执行 DOM、样式计算、布局计算、CSS动画等。 这样遇到的第一个问题是，如何处理高优先级的任务。就以DOM节点变化来说，其变化非常频">
+<meta property="og:type" content="article">
+<meta property="og:title" content="宏任务与微任务">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="队列在进入正题之前，我们先了解一下浏览器内的队列，可以参考一下下图：  消息队列中的任务类型大致可分为：输入事件(鼠标滚动、点击、移动)、微任务、文件读写、WebSocket、JavaScript 定时器等等，另外还有页面相关事件，例如 JavaScript 执行、执行 DOM、样式计算、布局计算、CSS动画等。 这样遇到的第一个问题是，如何处理高优先级的任务。就以DOM节点变化来说，其变化非常频">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-queue.png">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-timeout.png">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-ajax.png">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-p.png">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-w01.png">
+<meta property="og:image" content="https://chenlong-frontend.github.io/img/promise-w02.png">
+<meta property="article:published_time" content="2021-02-04T12:21:16.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.976Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="promise">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chenlong-frontend.github.io/img/promise-queue.png">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/","path":"2021/02/04/宏任务与微任务/","title":"宏任务与微任务"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>宏任务与微任务 | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%9F%E5%88%97"><span class="nav-number">1.</span> <span class="nav-text">队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#setTimeout"><span class="nav-number">2.</span> <span class="nav-text">setTimeout</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E5%BD%93%E5%89%8D%E4%BB%BB%E5%8A%A1%E6%89%A7%E8%A1%8C%E6%97%B6%E9%97%B4%E8%BF%87%E4%B9%85%EF%BC%8C%E4%BC%9A%E5%BD%B1%E5%BB%B6%E8%BF%9F%E5%88%B0%E6%9C%9F%E5%AE%9A%E6%97%B6%E5%99%A8%E4%BB%BB%E5%8A%A1%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="nav-number">2.1.</span> <span class="nav-text">如果当前任务执行时间过久，会影延迟到期定时器任务的执行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C-setTimeout-%E5%AD%98%E5%9C%A8%E5%B5%8C%E5%A5%97%E8%B0%83%E7%94%A8%EF%BC%8C%E9%82%A3%E4%B9%88%E7%B3%BB%E7%BB%9F%E4%BC%9A%E8%AE%BE%E7%BD%AE%E6%9C%80%E7%9F%AD%E6%97%B6%E9%97%B4%E9%97%B4%E9%9A%94%E4%B8%BA-4-%E6%AF%AB%E7%A7%92"><span class="nav-number">2.2.</span> <span class="nav-text">如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AA%E6%BF%80%E6%B4%BB%E7%9A%84%E9%A1%B5%E9%9D%A2%EF%BC%8CsetTimeout-%E6%89%A7%E8%A1%8C%E6%9C%80%E5%B0%8F%E9%97%B4%E9%9A%94%E6%98%AF-1000-%E6%AF%AB%E7%A7%92"><span class="nav-number">2.3.</span> <span class="nav-text">未激活的页面，setTimeout 执行最小间隔是 1000 毫秒</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BB%B6%E6%97%B6%E6%89%A7%E8%A1%8C%E6%97%B6%E9%97%B4%E6%9C%89%E6%9C%80%E5%A4%A7%E5%80%BC%EF%BC%8C%E8%B6%85%E5%87%BA-2147483647-%E6%AF%AB%E7%A7%92%E4%BC%9A%E8%A2%AB%E7%AB%8B%E5%8D%B3%E6%89%A7%E8%A1%8C%E3%80%82"><span class="nav-number">2.4.</span> <span class="nav-text">延时执行时间有最大值，超出 2147483647 毫秒会被立即执行。</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XMLHttpRequest"><span class="nav-number">3.</span> <span class="nav-text">XMLHttpRequest</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8F%E4%BB%BB%E5%8A%A1%E5%92%8C%E5%BE%AE%E4%BB%BB%E5%8A%A1"><span class="nav-number">4.</span> <span class="nav-text">宏任务和微任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8F%E4%BB%BB%E5%8A%A1"><span class="nav-number">4.1.</span> <span class="nav-text">宏任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BE%AE%E4%BB%BB%E5%8A%A1"><span class="nav-number">4.2.</span> <span class="nav-text">微任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Promise"><span class="nav-number">4.3.</span> <span class="nav-text">Promise</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">思考题</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="宏任务与微任务 | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          宏任务与微任务
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-04 20:21:16" itemprop="dateCreated datePublished" datetime="2021-02-04T20:21:16+08:00">2021-02-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/promise/" itemprop="url" rel="index"><span itemprop="name">promise</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>在进入正题之前，我们先了解一下浏览器内的队列，可以参考一下下图：</p>
+<p><img src="/img/promise-queue.png" alt="promise-queue"></p>
+<p>消息队列中的任务类型大致可分为：输入事件(鼠标滚动、点击、移动)、微任务、文件读写、WebSocket、JavaScript 定时器等等，另外还有页面相关事件，例如 JavaScript 执行、执行 DOM、样式计算、布局计算、CSS动画等。</p>
+<p>这样遇到的第一个问题是，如何处理高优先级的任务。就以DOM节点变化来说，其变化非常频繁。</p>
+<p>为了解决上面这个问题，就需要引入微任务的概念。我们把消息队列中的任务称为宏任务，每个宏任务中都包含一个微任务队列，在执行宏任务的过程中，如果DOM有变化，那么就会将该变化添加到微任务列表中，等宏任务中的主要功能都直接完成之后，会取出微任务队列执行。</p>
+<p>第二个问题，单个任务执行过长问题，使用回调可以来规避。</p>
+<h3 id="setTimeout"><a href="#setTimeout" class="headerlink" title="setTimeout"></a>setTimeout</h3><p>看完队列，我们再来看看 <code>setTimeout</code>，消息队列中的任务是按照顺序执行的，所以不能将定时器的回调函数直接添加到消息队列中，在正常使用的消息队列之外，还有一个延迟队列</p>
+<p>当 <code>JavaScript</code> 调用 <code>setTimeout</code> 设置回调函数的时候，渲染进程将会创建一个回调任务，并添加到延迟队列中</p>
+<p>当消息队列的一个任务执行完成之后，就开始执行延时队列函数，根据发起时间和延时时间可以计算出到期的任务，到期任务执行完成之后，继续下一个循环。</p>
+<p>使用 <code>setTimeout</code> 注意项</p>
+<h4 id="如果当前任务执行时间过久，会影延迟到期定时器任务的执行"><a href="#如果当前任务执行时间过久，会影延迟到期定时器任务的执行" class="headerlink" title="如果当前任务执行时间过久，会影延迟到期定时器任务的执行"></a>如果当前任务执行时间过久，会影延迟到期定时器任务的执行</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bar</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(bar, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5000</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">let</span> i = <span class="number">5</span>+<span class="number">8</span>+<span class="number">8</span>+<span class="number">8</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(i)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">foo</span>()</span><br></pre></td></tr></table></figure>
+
+<p>延时任务会被延时 500毫秒，执行过程如下图</p>
+<p><img src="/img/promise-timeout.png" alt="promise-timeout"></p>
+<h4 id="如果-setTimeout-存在嵌套调用，那么系统会设置最短时间间隔为-4-毫秒"><a href="#如果-setTimeout-存在嵌套调用，那么系统会设置最短时间间隔为-4-毫秒" class="headerlink" title="如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒"></a>如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒</h4><p>看如下代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">cb</span>(<span class="params"></span>) &#123; <span class="built_in">setTimeout</span>(cb, <span class="number">0</span>); &#125;</span><br><span class="line"><span class="built_in">setTimeout</span>(cb, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码前五次调用的的间隔时间比较小，如果被嵌套调用5次以上，系统会判定该函数方法被阻塞，如果定时器的调用时间间隔小于4毫秒，浏览器会将每次调用时间间隔设置为 4 毫秒。所以使用 <code>setTimeout</code> 来实现 <code>JavaScript</code> 动画就不是一个很好的主意。</p>
+<h4 id="未激活的页面，setTimeout-执行最小间隔是-1000-毫秒"><a href="#未激活的页面，setTimeout-执行最小间隔是-1000-毫秒" class="headerlink" title="未激活的页面，setTimeout 执行最小间隔是 1000 毫秒"></a>未激活的页面，setTimeout 执行最小间隔是 1000 毫秒</h4><h4 id="延时执行时间有最大值，超出-2147483647-毫秒会被立即执行。"><a href="#延时执行时间有最大值，超出-2147483647-毫秒会被立即执行。" class="headerlink" title="延时执行时间有最大值，超出 2147483647 毫秒会被立即执行。"></a>延时执行时间有最大值，超出 2147483647 毫秒会被立即执行。</h4><h3 id="XMLHttpRequest"><a href="#XMLHttpRequest" class="headerlink" title="XMLHttpRequest"></a>XMLHttpRequest</h3><p>了解完 <code>setTimeout</code>后，我们在看一下 <code>XMLHttpRequest</code>，其工作过程可以参考下图：</p>
+<p><img src="/img/promise-ajax.png" alt="promise-ajax"></p>
+<h3 id="宏任务和微任务"><a href="#宏任务和微任务" class="headerlink" title="宏任务和微任务"></a>宏任务和微任务</h3><h4 id="宏任务"><a href="#宏任务" class="headerlink" title="宏任务"></a>宏任务</h4><p>页面中中的大部分任务都是在主线程上执行的，这些任务包括了：</p>
+<ul>
+<li>渲染事件（如解析 DOM、计算布局、绘制）</li>
+<li>用户交互事件（如鼠标点击、滚动页面、放大缩小等）</li>
+<li>JavaScript 脚本执行事件</li>
+<li>网络请求完成、文件读写完成事件</li>
+</ul>
+<p>看下面一段代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;!<span class="variable constant_">DOCTYPE</span> html&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&#x27;demo&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">ol</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>test<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">ol</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="keyword">function</span> <span class="title function_">timerCallback2</span>(<span class="params"></span>)&#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="keyword">function</span> <span class="title function_">timerCallback</span>(<span class="params"></span>)&#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">            <span class="built_in">setTimeout</span>(timerCallback2,<span class="number">0</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="built_in">setTimeout</span>(timerCallback,<span class="number">0</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这里我们的目的是想用 <code>setTimeout</code> 来设置两个回调任务，并让他们按照前后顺序来指向，中间不要插入其他任务，但实际执行情况如下：</p>
+<p><img src="/img/promise-p.png" alt="promise-p"></p>
+<p>左右两个黄色色块就是 <code>setTimeout</code> 触发的两个定时器任务，在中间浅红色区域有很多一段一段的任务，这是被渲染引擎插在两个定时器任务中间的任务。</p>
+<p>这里要说明一下，<code>setTimeout</code>函数所触发的回调函数都是宏任务。</p>
+<h4 id="微任务"><a href="#微任务" class="headerlink" title="微任务"></a>微任务</h4><p>首先来说一下同步回调和异步回调的概念，每个任务在执行过程中，都有自己的调用栈，同步回调就是在当前主函数的上下文中执行回调函数，异步回调是指回到函数在主函数之外执行，一般由两种方式：</p>
+<ul>
+<li>第一种是把异步函数做成一个任务，添加到信息队列尾部</li>
+<li>第二种是把异步函数添加到微任务队列中，这样就可以在当前任务的末尾处执行微任务了</li>
+</ul>
+<p>而微任务就是一个需要异步执行的函数，执行时机是在主函数执行之后，当前宏任务结束之前</p>
+<p>现代浏览器里面，产生微任务有两种方式</p>
+<ul>
+<li>使用 <code>MutationObserver</code> 监控某个 DOM 节点，然后再通过 <code>JavaScript</code> 来修改这个节点，或者为这个节点添加、删除部分子节点，当 DOM 节点发生变化时，机会产生 DOM 变化记录的微任务</li>
+<li>使用 <code>Promise</code>，当调用 <code>Promise.resolve()</code> 或者 <code>Promise.reject()</code>的时候，也会产出微任务</li>
+</ul>
+<p>这两个方式产生的微任务都会被<code>JavaScript</code>引擎按照顺序保存到微任务中</p>
+<p>当前宏任务的 <code>JavaScript</code> 快执行完成时，js 引擎准备退出全局指向上下文并清空调用栈的时候，<code>JavaScript</code> 引擎·会检查全局执行上下文中的微任务队列，然后按照顺序执行队列中的微任务。执行微任务的时间点称为检查点。</p>
+<p>如果在执行微任务的过程中，产生了新的微任务，同样会将该微任务添加到微任务队列中，也就是在执行微任务过程中产生的新的微任务并不会推迟到下个宏任务中，而是在当前宏任务中继续执行，直到清空队列。</p>
+<p>如果在在一个宏任务中分别创建一个用于回调的宏任务和微任务，微任务一定会早于宏任务执行，因为宏任务会进入队列，而微任务会在本次执行</p>
+<p>其示意图如下：</p>
+<p><img src="/img/promise-w01.png" alt="promise-w01"><br><img src="/img/promise-w02.png" alt="promise-w02"></p>
+<h4 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h4><p> 以如下代码为例：</p>
+ <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">// 此代码会被立即执行</span></span><br><span class="line"><span class="keyword">const</span> test = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 此代码会产生一个微任务，放到此宏任务的检查点执行，也就是.then之后</span></span><br><span class="line">    <span class="comment">// 这时候可以顺利的取到.then内部的回调函数来执行</span></span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">100</span>)</span><br><span class="line">&#125;)</span><br><span class="line">test.<span class="title function_">then</span>(<span class="function"><span class="params">v</span>=&gt;</span>&#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(v)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h3> <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;foo&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">bar</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar start&#x27;</span>)</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">foo</span>()</span><br><span class="line">  <span class="comment">// 微任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar end&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 宏任务阶段执行</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;script start&#x27;</span>)</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 延时队列最后执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;setTimeout&#x27;</span>)</span><br><span class="line">&#125;, <span class="number">0</span>)</span><br><span class="line"><span class="title function_">bar</span>();</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span> (<span class="params">resolve</span>) &#123;</span><br><span class="line">  <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;promise executor&#x27;</span>)</span><br><span class="line">  <span class="title function_">resolve</span>();</span><br><span class="line">&#125;).<span class="title function_">then</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 微任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;promise then&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 宏任务阶段执行</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;script end&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最终输出</span></span><br><span class="line"><span class="comment">// script start / bar start / foo / promise executor / script end / bar end / promise then / setTimeout</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/promise/" rel="tag"># promise</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="prev" title="设计模式">
+                  <i class="fa fa-angle-left"></i> 设计模式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/09/vue3%E4%B9%8Beffect/" rel="next" title="vue3 响应原理">
+                  vue3 响应原理 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

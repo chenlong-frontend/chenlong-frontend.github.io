@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chenlong-frontend.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="最近利用空闲时间学习了一下 prisma 简单使用，对于我这种前端开发者确实相当方便。 prisma在 docker 中使用 prisma 相当方便。安装流程可以看这里。 这里就我当初的初识 prisma 时的疑惑谈一谈。 启动失败一开始因为数据库配置一直无法启动服务。在执行prisma deploy报如下错： 1could not connect to server at http:&#x2F;&#x2F;loca">
+<meta property="og:type" content="article">
+<meta property="og:title" content="prisma、jwt入门笔记">
+<meta property="og:url" content="https://chenlong-frontend.github.io/2019/06/26/prisma%E4%BB%A5%E5%8F%8Ajwt%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="陈龙·今朝">
+<meta property="og:description" content="最近利用空闲时间学习了一下 prisma 简单使用，对于我这种前端开发者确实相当方便。 prisma在 docker 中使用 prisma 相当方便。安装流程可以看这里。 这里就我当初的初识 prisma 时的疑惑谈一谈。 启动失败一开始因为数据库配置一直无法启动服务。在执行prisma deploy报如下错： 1could not connect to server at http:&#x2F;&#x2F;loca">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-06-26T06:40:20.000Z">
+<meta property="article:modified_time" content="2023-08-22T01:52:43.972Z">
+<meta property="article:author" content="陈龙">
+<meta property="article:tag" content="prisma">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chenlong-frontend.github.io/2019/06/26/prisma%E4%BB%A5%E5%8F%8Ajwt%E5%85%A5%E9%97%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chenlong-frontend.github.io/2019/06/26/prisma%E4%BB%A5%E5%8F%8Ajwt%E5%85%A5%E9%97%A8/","path":"2019/06/26/prisma以及jwt入门/","title":"prisma、jwt入门笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>prisma、jwt入门笔记 | 陈龙·今朝</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">陈龙·今朝</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">飞扬意气追惆怅，越下青尘越不休。一眼平生无限事，曾经陌上少年游。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#prisma"><span class="nav-number">1.</span> <span class="nav-text">prisma</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E5%A4%B1%E8%B4%A5"><span class="nav-number">1.1.</span> <span class="nav-text">启动失败</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prisma-client"><span class="nav-number">1.2.</span> <span class="nav-text">prisma-client</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%97%E8%A1%A8%E7%9A%84%E8%81%94%E8%A1%A8%E6%9F%A5%E8%AF%A2"><span class="nav-number">1.3.</span> <span class="nav-text">列表的联表查询</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jwt"><span class="nav-number">2.</span> <span class="nav-text">jwt</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">陈龙</p>
+  <div class="site-description" itemprop="description">知识总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2019/06/26/prisma%E4%BB%A5%E5%8F%8Ajwt%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="prisma、jwt入门笔记 | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          prisma、jwt入门笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-06-26 14:40:20" itemprop="dateCreated datePublished" datetime="2019-06-26T14:40:20+08:00">2019-06-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/prisma/" itemprop="url" rel="index"><span itemprop="name">prisma</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>最近利用空闲时间学习了一下 prisma 简单使用，对于我这种前端开发者确实相当方便。</p>
+<h2 id="prisma"><a href="#prisma" class="headerlink" title="prisma"></a>prisma</h2><p>在 docker 中使用 prisma 相当方便。安装流程可以看<a target="_blank" rel="noopener" href="https://prisma.1wire.com/blog/newdatabase">这里</a>。</p>
+<p>这里就我当初的初识 prisma 时的疑惑谈一谈。</p>
+<h3 id="启动失败"><a href="#启动失败" class="headerlink" title="启动失败"></a>启动失败</h3><p>一开始因为数据库配置一直无法启动服务。在执行<code>prisma deploy</code>报如下错：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">could not connect to server at http://localhost:4466.Please check if your server is running.</span><br></pre></td></tr></table></figure>
+
+<p>只是看这个我当时也不知道错在哪里，后来通过查看日志找到了问题所在。</p>
+<p>首先执行<code>docker-compose ps</code>查看容器名称，再执行<code>docker logs --tail 50 --follow --timestamps prismademo_prisma_1</code>查看容器的报错，其中<code>prismademo_prisma_1</code>是你要查看的容器名称。</p>
+<p>解决了数据库问题，接着启动又遇到一个报错：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bad indentation of a mapping entry at line 3, column 14:</span><br><span class="line">- generator: javascript-client</span><br></pre></td></tr></table></figure>
+
+<p>因为<code>prisma.yml</code>中的<code>- generator: javascript-client</code>少了个缩进。。。，加上一个缩进空格即可。</p>
+<h3 id="prisma-client"><a href="#prisma-client" class="headerlink" title="prisma-client"></a>prisma-client</h3><p>关于这个生成的客户端的方式，我尝试过几种，最终选择了 rest 风格方式。具体使用方式可见我写的一个简单的<a target="_blank" rel="noopener" href="https://github.com/1016482011/prisma-rest">例子</a>。</p>
+<p>其中<code>src/prisma-client</code>下的两个文件便是由<code>prisma generate</code>生成，复制到你的 node 中间层即可。</p>
+<p>其中有一点需要注意，如果你需要远程调用 prisma 的接口的话，需要修改<code>prisma-client</code>下的<code>index.js</code>文件：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="built_in">exports</span>.<span class="property">Prisma</span> = prisma_lib_1.<span class="title function_">makePrismaClientClass</span>(&#123;</span><br><span class="line">  typeDefs,</span><br><span class="line">  models,</span><br><span class="line">  <span class="comment">// 此处将localhost改为你的服务器地址</span></span><br><span class="line">  <span class="attr">endpoint</span>: <span class="string">`http://xxxxxxx:4466`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="列表的联表查询"><a href="#列表的联表查询" class="headerlink" title="列表的联表查询"></a>列表的联表查询</h3><p>默认查询只能查出自身的字段，如果需要他表关联数据或者需要简化查询返回字段，可以通过如下方式:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> query = <span class="string">`</span></span><br><span class="line"><span class="string">  query &#123;</span></span><br><span class="line"><span class="string">    webAddBalances&#123;</span></span><br><span class="line"><span class="string">      id,</span></span><br><span class="line"><span class="string">      Amount,</span></span><br><span class="line"><span class="string">      Createtime,</span></span><br><span class="line"><span class="string">      User&#123;realname&#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line"><span class="keyword">const</span> result = <span class="keyword">await</span> prisma.$graphql(query)</span><br></pre></td></tr></table></figure>
+
+<h2 id="jwt"><a href="#jwt" class="headerlink" title="jwt"></a>jwt</h2><p>jwt 使用相对来说简单一些，具体可见<a target="_blank" rel="noopener" href="https://github.com/auth0/node-jsonwebtoken#readme">这里</a>查看具体使用方式：</p>
+<p>使用的话也相当简单</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> jwt = <span class="built_in">require</span>(<span class="string">&#x27;jsonwebtoken&#x27;</span>)</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Jwt</span> &#123;</span><br><span class="line">  <span class="comment">//生成token</span></span><br><span class="line">  <span class="title function_">generateToken</span>(<span class="params">data</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> created = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Date</span>.<span class="title function_">now</span>() / <span class="number">1000</span>)</span><br><span class="line">    <span class="keyword">let</span> token = jwt.<span class="title function_">sign</span>(</span><br><span class="line">      &#123;</span><br><span class="line">        data,</span><br><span class="line">        <span class="attr">exp</span>: created + <span class="number">60</span> * <span class="number">300</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="string">&#x27;secret&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> token</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 校验token</span></span><br><span class="line">  <span class="title function_">verifyToken</span>(<span class="params">t</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> res</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> token = t.<span class="title function_">replace</span>(<span class="string">&#x27;Bearer &#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">      <span class="keyword">let</span> result = jwt.<span class="title function_">verify</span>(token, <span class="string">&#x27;secret&#x27;</span>) || &#123;&#125;</span><br><span class="line">      <span class="keyword">let</span> &#123; exp = <span class="number">0</span> &#125; = result,</span><br><span class="line">        current = <span class="title class_">Math</span>.<span class="title function_">floor</span>(<span class="title class_">Date</span>.<span class="title function_">now</span>() / <span class="number">1000</span>)</span><br><span class="line">      <span class="keyword">if</span> (current &lt;= exp) &#123;</span><br><span class="line">        res = result.<span class="property">data</span> || &#123;&#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">      res = e</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = <span class="title class_">Jwt</span></span><br></pre></td></tr></table></figure>
+
+<p>总的来说，通过这次学习，让我有了快速搭建小型项目的能力，但这些基础还远远不够，后续我也会尽量寻找一些练手的小玩意来深入学习。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/prisma/" rel="tag"># prisma</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/06/21/react%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%9304/" rel="prev" title="记如何在现有开发中可复制模板">
+                  <i class="fa fa-angle-left"></i> 记如何在现有开发中可复制模板
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/06/28/docker%E5%85%A5%E9%97%A8/" rel="next" title="docker入门笔记">
+                  docker入门笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">陈龙</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

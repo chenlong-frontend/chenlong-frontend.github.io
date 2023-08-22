@@ -32,32 +32,32 @@ import {
   Translate,
   MarkTool,
   Measure,
-  Roam
-} from './tools'
+  Roam,
+} from './tools';
 
 class ModelTool extends EventDispatcher {
-  static ColorTool = ColorTool
-  static ClipTool = ClipTool
-  static DragTool = DragTool
-  static HideTool = HideTool
-  static MarkTool = MarkTool
-  static Measure = Measure
-  static RotateTool = RotateTool
-  static Roam = Roam
-  static PickTool = PickTool
-  static SaveView = SaveView
-  static Translate = Translate
-  static WireframeTool = WireframeTool
+  static ColorTool = ColorTool;
+  static ClipTool = ClipTool;
+  static DragTool = DragTool;
+  static HideTool = HideTool;
+  static MarkTool = MarkTool;
+  static Measure = Measure;
+  static RotateTool = RotateTool;
+  static Roam = Roam;
+  static PickTool = PickTool;
+  static SaveView = SaveView;
+  static Translate = Translate;
+  static WireframeTool = WireframeTool;
 }
 
-import { ModelTool as Bustard } from './modelTool'
-export { Bustard }
-这样外部可以这么使用
+import { ModelTool as Bustard } from './modelTool';
+export { Bustard };
+这样外部可以这么使用;
 
-import { Bustard } from 'bustard'
+import { Bustard } from 'bustard';
 
-const t = new Bustard()
-t.use(new Bustard.ColorTool())
+const t = new Bustard();
+t.use(new Bustard.ColorTool());
 ```
 
 防抖动（debounce ）和节流阀（throttle ） loadsh
@@ -66,6 +66,7 @@ t.use(new Bustard.ColorTool())
 e.stopPropagation()
 
 ## NodeJS 回调的错误处理方式及其优点
+
 优点包括如下：
 
 如果不需要引用数据，则无需对数据进行处理
@@ -74,32 +75,3 @@ API 保持高度的一致性可以带来更多的便捷
 
 加分回答
 虽然这只是一种约定，但是我们应该按照约定的去做。
-
-## js实现readonly属性
-  get state () {
-    return this._state
-  }
-  set state(v) {}
-
-## svg 转图片
-`url('data:image/svg+xml;charset=utf-8,${ptzImg.replace(/#/g, '%23').replace(/\n/g, '%0A')}')`
-
-## 压缩图片
-
-function compressPicture ({src, width, quality}) {
-    return new Promise((resolve, reject) => {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        var img = new Image();
-        img.src = src
-        img.onload= function(){
-            canvas.width= width;
-            canvas.height= img.height / img.width * width;
-            ctx.drawImage(img,0,0,canvas.width, canvas.height);
-            resolve(canvas.toDataURL("image/jpeg", quality))
-        };
-        img.onerror = function() {
-            reject()
-        }
-    })
-}

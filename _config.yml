@@ -108,7 +108,7 @@ theme: next
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/1016482011/1016482011.github.io.git #https://bitbucket.org/JohnSmith/johnsmith.bitbucket.io
+  repo: https://github.com/chenlong-frontend/chenlong-frontend.github.io.git #https://bitbucket.org/JohnSmith/johnsmith.bitbucket.io
   branch: master
   message:
 

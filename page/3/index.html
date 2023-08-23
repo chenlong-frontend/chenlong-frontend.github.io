@@ -116,16 +116,16 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-count">19</span>
         <span class="site-state-item-name">分类</span>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -142,6 +142,423 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2021/03/09/vue3%E4%B9%8Beffect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/03/09/vue3%E4%B9%8Beffect/" class="post-title-link" itemprop="url">vue3 响应原理</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-03-09 18:35:35" itemprop="dateCreated datePublished" datetime="2021-03-09T18:35:35+08:00">2021-03-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/vue3/" itemprop="url" rel="index"><span itemprop="name">vue3</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>注：以下说明基于 <code>vue3 v3.0.7</code></p>
+<p><code>vue3</code> 的响应式模块位于 <code>reactivity</code> 目录下，我们以以下代码为例：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> test = <span class="title function_">reactive</span>(&#123;</span><br><span class="line">  <span class="attr">count</span>: <span class="number">0</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="track"><a href="#track" class="headerlink" title="track"></a>track</h3><p>首先找到 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/reactive.ts#L85">reactive</a> 方法</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span>  (<span class="params">target: object</span>) &#123;</span><br><span class="line">  <span class="comment">// 如果尝试观察一个只读的 proxy，返回 target 本身</span></span><br><span class="line">  <span class="keyword">if</span> (target &amp;&amp; (target <span class="keyword">as</span> <span class="title class_">Target</span>)[<span class="title class_">ReactiveFlags</span>.<span class="property">IS_READONLY</span>]) &#123;</span><br><span class="line">    <span class="keyword">return</span> target</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">createReactiveObject</span>(</span><br><span class="line">    target,</span><br><span class="line">    <span class="literal">false</span>,</span><br><span class="line">    mutableHandlers,</span><br><span class="line">    mutableCollectionHandlers</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着移步到 <code>166</code> 行，找到 <code>createReactiveObject</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createReactiveObject</span>(<span class="params"></span></span><br><span class="line"><span class="params">  target: Target,</span></span><br><span class="line"><span class="params">  isReadonly: boolean,</span></span><br><span class="line"><span class="params">  baseHandlers: ProxyHandler&lt;any&gt;,</span></span><br><span class="line"><span class="params">  collectionHandlers: ProxyHandler&lt;any&gt;</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 如果被观察对象已经被代理了，直接返回</span></span><br><span class="line">  <span class="comment">// 例外: 调用 readonly()</span></span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    target[<span class="title class_">ReactiveFlags</span>.<span class="property">RAW</span>] &amp;&amp;</span><br><span class="line">    !(isReadonly &amp;&amp; target[<span class="title class_">ReactiveFlags</span>.<span class="property">IS_REACTIVE</span>])</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="keyword">return</span> target</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果已经存在了，直接返回已存在的值</span></span><br><span class="line">  <span class="keyword">const</span> proxyMap = isReadonly ? readonlyMap : reactiveMap</span><br><span class="line">  <span class="keyword">const</span> existingProxy = proxyMap.<span class="title function_">get</span>(target)</span><br><span class="line">  <span class="keyword">if</span> (existingProxy) &#123;</span><br><span class="line">    <span class="keyword">return</span> existingProxy</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 只有白名单内的值可以被观察</span></span><br><span class="line">  <span class="keyword">const</span> targetType = <span class="title function_">getTargetType</span>(target)</span><br><span class="line">  <span class="keyword">if</span> (targetType === <span class="title class_">TargetType</span>.<span class="property">INVALID</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> target</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 创建代理</span></span><br><span class="line">  <span class="comment">// collectionHandlers 引用类型的代理</span></span><br><span class="line">  <span class="comment">// baseHandlers 基础类型的代理</span></span><br><span class="line">  <span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="title class_">Proxy</span>(</span><br><span class="line">    target,</span><br><span class="line">    targetType === <span class="title class_">TargetType</span>.<span class="property">COLLECTION</span> ? collectionHandlers : baseHandlers</span><br><span class="line">  )</span><br><span class="line">  <span class="comment">// 缓存到全局</span></span><br><span class="line">  proxyMap.<span class="title function_">set</span>(target, proxy)</span><br><span class="line">  <span class="comment">// 返回代理</span></span><br><span class="line">  <span class="keyword">return</span> proxy</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处使用的 <code>baseHandlers</code> 由 <code>reactive</code> 可知，调用的是<a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/baseHandlers.ts#L75">createGetter</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="attr">mutableHandlers</span>: <span class="title class_">ProxyHandler</span>&lt;object&gt; = &#123;</span><br><span class="line">  get,</span><br><span class="line">  set,</span><br><span class="line">  deleteProperty,</span><br><span class="line">  has,</span><br><span class="line">  ownKeys</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> get = <span class="comment">/*#__PURE__*/</span> <span class="title function_">createGetter</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createGetter</span>(<span class="params">isReadonly = <span class="literal">false</span>, shallow = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">get</span>(<span class="params">target: Target, key: string | symbol, receiver: object</span>) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 数组操作</span></span><br><span class="line">    <span class="keyword">const</span> targetIsArray = <span class="title function_">isArray</span>(target)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!isReadonly &amp;&amp; targetIsArray &amp;&amp; <span class="title function_">hasOwn</span>(arrayInstrumentations, key)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title class_">Reflect</span>.<span class="title function_">get</span>(arrayInstrumentations, key, receiver)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 非数组操作</span></span><br><span class="line">    <span class="keyword">const</span> res = <span class="title class_">Reflect</span>.<span class="title function_">get</span>(target, key, receiver)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果不是只读的，调用 track</span></span><br><span class="line">    <span class="keyword">if</span> (!isReadonly) &#123;</span><br><span class="line">      <span class="title function_">track</span>(target, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, key)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ref 处理</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isRef</span>(res)) &#123;</span><br><span class="line">      <span class="comment">// ref unwrapping - does not apply for Array + integer key.</span></span><br><span class="line">      <span class="keyword">const</span> shouldUnwrap = !targetIsArray || !<span class="title function_">isIntegerKey</span>(key)</span><br><span class="line">      <span class="keyword">return</span> shouldUnwrap ? res.<span class="property">value</span> : res</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对象处理，</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">isObject</span>(res)) &#123;</span><br><span class="line">      <span class="comment">// 为了避免无效值的警告，以及环形引用，这里将返回值也通过 代理返回</span></span><br><span class="line">      <span class="keyword">return</span> isReadonly ? <span class="title function_">readonly</span>(res) : <span class="title function_">reactive</span>(res)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在处理数组的时候，调用了 <code>arrayInstrumentations</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="attr">arrayInstrumentations</span>: <span class="title class_">Record</span>&lt;string, <span class="title class_">Function</span>&gt; = &#123;&#125;</span><br><span class="line"><span class="comment">// 拦截了 &#x27;includes&#x27;, &#x27;indexOf&#x27;, &#x27;lastIndexOf&#x27; 方法</span></span><br><span class="line">;([<span class="string">&#x27;includes&#x27;</span>, <span class="string">&#x27;indexOf&#x27;</span>, <span class="string">&#x27;lastIndexOf&#x27;</span>] <span class="keyword">as</span> <span class="keyword">const</span>).<span class="title function_">forEach</span>(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> method = <span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span>[key] <span class="keyword">as</span> any</span><br><span class="line">  arrayInstrumentations[key] = <span class="keyword">function</span>(<span class="params"><span class="variable language_">this</span>: unknown[], ...args: unknown[]</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> arr = <span class="title function_">toRaw</span>(<span class="variable language_">this</span>)</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = <span class="variable language_">this</span>.<span class="property">length</span>; i &lt; l; i++) &#123;</span><br><span class="line">      <span class="title function_">track</span>(arr, <span class="title class_">TrackOpTypes</span>.<span class="property">GET</span>, i + <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 先用初始参数运行</span></span><br><span class="line">    <span class="keyword">const</span> res = method.<span class="title function_">apply</span>(arr, args)</span><br><span class="line">    <span class="keyword">if</span> (res === -<span class="number">1</span> || res === <span class="literal">false</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果不起作用，使用初始值再跑一遍</span></span><br><span class="line">      <span class="keyword">return</span> method.<span class="title function_">apply</span>(arr, args.<span class="title function_">map</span>(toRaw))</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> res</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 避免数组长度变化导致的无限死循环 (#2137)</span></span><br><span class="line">;([<span class="string">&#x27;push&#x27;</span>, <span class="string">&#x27;pop&#x27;</span>, <span class="string">&#x27;shift&#x27;</span>, <span class="string">&#x27;unshift&#x27;</span>, <span class="string">&#x27;splice&#x27;</span>] <span class="keyword">as</span> <span class="keyword">const</span>).<span class="title function_">forEach</span>(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> method = <span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span>[key] <span class="keyword">as</span> any</span><br><span class="line">  arrayInstrumentations[key] = <span class="keyword">function</span>(<span class="params"><span class="variable language_">this</span>: unknown[], ...args: unknown[]</span>) &#123;</span><br><span class="line">    <span class="title function_">pauseTracking</span>()</span><br><span class="line">    <span class="keyword">const</span> res = method.<span class="title function_">apply</span>(<span class="variable language_">this</span>, args)</span><br><span class="line">    <span class="title function_">resetTracking</span>()</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>下面着一下关键的 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L141">track</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">track</span>(<span class="params">target: object, type: TrackOpTypes, key: unknown</span>) &#123;</span><br><span class="line">  <span class="comment">// 调用时需要 shouldTrack 和 activeEffect 为真</span></span><br><span class="line">  <span class="keyword">if</span> (!shouldTrack || activeEffect === <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 从缓存中获取，如果不存在，则创建一个新map，并以target为key，空map为 value 赋值</span></span><br><span class="line">  <span class="keyword">let</span> depsMap = targetMap.<span class="title function_">get</span>(target)</span><br><span class="line">  <span class="keyword">if</span> (!depsMap) &#123;</span><br><span class="line">    targetMap.<span class="title function_">set</span>(target, (depsMap = <span class="keyword">new</span> <span class="title class_">Map</span>()))</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 从depsMap中获取指定key的值，这里的值一般存的副作用方法</span></span><br><span class="line">  <span class="keyword">let</span> dep = depsMap.<span class="title function_">get</span>(key)</span><br><span class="line">  <span class="comment">// 如果不存在，创建一个新set，并赋值</span></span><br><span class="line">  <span class="keyword">if</span> (!dep) &#123;</span><br><span class="line">    depsMap.<span class="title function_">set</span>(key, (dep = <span class="keyword">new</span> <span class="title class_">Set</span>()))</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果dep中没有当前的副作用方法，则添加</span></span><br><span class="line">  <span class="keyword">if</span> (!dep.<span class="title function_">has</span>(activeEffect)) &#123;</span><br><span class="line">    dep.<span class="title function_">add</span>(activeEffect)</span><br><span class="line">    activeEffect.<span class="property">deps</span>.<span class="title function_">push</span>(dep)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="effect"><a href="#effect" class="headerlink" title="effect"></a>effect</h3><p>在 <code>track</code> 里提到了 <code>effect</code>，这里也来看一下，首先看一下器入口函数 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L55">effect</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> effect&lt;T = any&gt;(</span><br><span class="line">  <span class="attr">fn</span>: <span class="function">() =&gt;</span> T,</span><br><span class="line">  <span class="attr">options</span>: <span class="title class_">ReactiveEffectOptions</span> = <span class="variable constant_">EMPTY_OBJ</span></span><br><span class="line">): <span class="title class_">ReactiveEffect</span>&lt;T&gt; &#123;</span><br><span class="line">  <span class="comment">// 返回原函数</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="title function_">isEffect</span>(fn)) &#123;</span><br><span class="line">    fn = fn.<span class="property">raw</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 创建副作用函数</span></span><br><span class="line">  <span class="keyword">const</span> effect = <span class="title function_">createReactiveEffect</span>(fn, options)</span><br><span class="line">  <span class="keyword">if</span> (!options.<span class="property">lazy</span>) &#123;</span><br><span class="line">    <span class="title function_">effect</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> effect</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> uid = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> createReactiveEffect&lt;T = any&gt;(</span><br><span class="line">  <span class="attr">fn</span>: <span class="function">() =&gt;</span> T,</span><br><span class="line">  <span class="attr">options</span>: <span class="title class_">ReactiveEffectOptions</span></span><br><span class="line">): <span class="title class_">ReactiveEffect</span>&lt;T&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> effect = <span class="keyword">function</span> <span class="title function_">reactiveEffect</span>(<span class="params"></span>): unknown &#123;</span><br><span class="line">    <span class="keyword">if</span> (!effect.<span class="property">active</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> options.<span class="property">scheduler</span> ? <span class="literal">undefined</span> : <span class="title function_">fn</span>()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果当前effect没被</span></span><br><span class="line">    <span class="keyword">if</span> (!effectStack.<span class="title function_">includes</span>(effect)) &#123;</span><br><span class="line">      <span class="comment">// 清空 effect上的deps数据</span></span><br><span class="line">      <span class="title function_">cleanup</span>(effect)</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="title function_">enableTracking</span>()</span><br><span class="line">        <span class="comment">// 加入当前调用栈</span></span><br><span class="line">        effectStack.<span class="title function_">push</span>(effect)</span><br><span class="line">        <span class="comment">// 设置当前调用effect</span></span><br><span class="line">        activeEffect = effect</span><br><span class="line">        <span class="comment">// 调用外部传入的方法，并返回其结果</span></span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">fn</span>()</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 调用完弹出</span></span><br><span class="line">        effectStack.<span class="title function_">pop</span>()</span><br><span class="line">        <span class="title function_">resetTracking</span>()</span><br><span class="line">        <span class="comment">// 将当前调用栈最后一个设置为当前调用 effect</span></span><br><span class="line">        activeEffect = effectStack[effectStack.<span class="property">length</span> - <span class="number">1</span>]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">as</span> <span class="title class_">ReactiveEffect</span></span><br><span class="line">  effect.<span class="property">id</span> = uid++</span><br><span class="line">  effect.<span class="property">allowRecurse</span> = !!options.<span class="property">allowRecurse</span></span><br><span class="line">  effect.<span class="property">_isEffect</span> = <span class="literal">true</span></span><br><span class="line">  effect.<span class="property">active</span> = <span class="literal">true</span></span><br><span class="line">  effect.<span class="property">raw</span> = fn</span><br><span class="line">  effect.<span class="property">deps</span> = []</span><br><span class="line">  effect.<span class="property">options</span> = options</span><br><span class="line">  <span class="keyword">return</span> effect</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">cleanup</span>(<span class="params">effect: ReactiveEffect</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; deps &#125; = effect</span><br><span class="line">  <span class="keyword">if</span> (deps.<span class="property">length</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; deps.<span class="property">length</span>; i++) &#123;</span><br><span class="line">      deps[i].<span class="title function_">delete</span>(effect)</span><br><span class="line">    &#125;</span><br><span class="line">    deps.<span class="property">length</span> = <span class="number">0</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="trigger"><a href="#trigger" class="headerlink" title="trigger"></a>trigger</h3><p>现在还剩最后一步，就是如何去触发，<code>track</code> 中存起来的 <code>effect</code></p>
+<p><code>track</code> 是在 <code>get</code> 拦截中被调用的，相对的，<code>trigger</code> 则是在 <code>set</code> 拦截中被调用的。</p>
+<p>找到 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/baseHandlers.ts#L132">createSetter</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createSetter</span>(<span class="params">shallow = <span class="literal">false</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">set</span>(<span class="params"></span></span><br><span class="line"><span class="params">    target: object,</span></span><br><span class="line"><span class="params">    key: string | symbol,</span></span><br><span class="line"><span class="params">    value: unknown,</span></span><br><span class="line"><span class="params">    receiver: object</span></span><br><span class="line"><span class="params">  </span>): boolean &#123;</span><br><span class="line">    <span class="keyword">const</span> oldValue = (target <span class="keyword">as</span> any)[key]</span><br><span class="line">    <span class="keyword">if</span> (!shallow) &#123;</span><br><span class="line">      <span class="comment">// 获取初始值</span></span><br><span class="line">      value = <span class="title function_">toRaw</span>(value)</span><br><span class="line">      <span class="keyword">if</span> (!<span class="title function_">isArray</span>(target) &amp;&amp; <span class="title function_">isRef</span>(oldValue) &amp;&amp; !<span class="title function_">isRef</span>(value)) &#123;</span><br><span class="line">        oldValue.<span class="property">value</span> = value</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> hadKey =</span><br><span class="line">      <span class="title function_">isArray</span>(target) &amp;&amp; <span class="title function_">isIntegerKey</span>(key)</span><br><span class="line">        ? <span class="title class_">Number</span>(key) &lt; target.<span class="property">length</span></span><br><span class="line">        : <span class="title function_">hasOwn</span>(target, key)</span><br><span class="line">    <span class="keyword">const</span> result = <span class="title class_">Reflect</span>.<span class="title function_">set</span>(target, key, value, receiver)</span><br><span class="line">    <span class="comment">// don&#x27;t trigger if target is something up in the prototype chain of original</span></span><br><span class="line">    <span class="keyword">if</span> (target === <span class="title function_">toRaw</span>(receiver)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!hadKey) &#123;</span><br><span class="line">        <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">ADD</span>, key, value)</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="title function_">hasChanged</span>(value, oldValue)) &#123;</span><br><span class="line">        <span class="title function_">trigger</span>(target, <span class="title class_">TriggerOpTypes</span>.<span class="property">SET</span>, key, value, oldValue)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里在最后调用了关键的方法 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/effect.ts#L167">trigger</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">trigger</span>(<span class="params"></span></span><br><span class="line"><span class="params">  target: object,</span></span><br><span class="line"><span class="params">  type: TriggerOpTypes,</span></span><br><span class="line"><span class="params">  key?: unknown,</span></span><br><span class="line"><span class="params">  newValue?: unknown,</span></span><br><span class="line"><span class="params">  oldValue?: unknown,</span></span><br><span class="line"><span class="params">  oldTarget?: <span class="built_in">Map</span>&lt;unknown, unknown&gt; | <span class="built_in">Set</span>&lt;unknown&gt;</span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> depsMap = targetMap.<span class="title function_">get</span>(target)</span><br><span class="line">  <span class="keyword">if</span> (!depsMap) &#123;</span><br><span class="line">    <span class="comment">// 没有被追踪</span></span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> effects = <span class="keyword">new</span> <span class="title class_">Set</span>&lt;<span class="title class_">ReactiveEffect</span>&gt;()</span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">add</span> = (<span class="params">effectsToAdd: <span class="built_in">Set</span>&lt;ReactiveEffect&gt; | <span class="literal">undefined</span></span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (effectsToAdd) &#123;</span><br><span class="line">      effectsToAdd.<span class="title function_">forEach</span>(<span class="function"><span class="params">effect</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (effect !== activeEffect || effect.<span class="property">allowRecurse</span>) &#123;</span><br><span class="line">          effects.<span class="title function_">add</span>(effect)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 这里通过调用 add 方法，将 effect 加入到 effects中</span></span><br><span class="line">  <span class="keyword">if</span> (type === <span class="title class_">TriggerOpTypes</span>.<span class="property">CLEAR</span>) &#123;</span><br><span class="line">    depsMap.<span class="title function_">forEach</span>(add)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (key === <span class="string">&#x27;length&#x27;</span> &amp;&amp; <span class="title function_">isArray</span>(target)) &#123;</span><br><span class="line">    depsMap.<span class="title function_">forEach</span>(<span class="function">(<span class="params">dep, key</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (key === <span class="string">&#x27;length&#x27;</span> || key &gt;= (newValue <span class="keyword">as</span> number)) &#123;</span><br><span class="line">        <span class="title function_">add</span>(dep)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">run</span> = (<span class="params">effect: ReactiveEffect</span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (effect.<span class="property">options</span>.<span class="property">scheduler</span>) &#123;</span><br><span class="line">      effect.<span class="property">options</span>.<span class="title function_">scheduler</span>(effect)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="title function_">effect</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 触发副作用</span></span><br><span class="line">  effects.<span class="title function_">forEach</span>(run)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>vue</code> 中的使用示例 <a target="_blank" rel="noopener" href="https://github.com/vuejs/vue-next/blob/master/packages/runtime-core/src/renderer.ts#L1389">setupRenderEffect</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="attr">setupRenderEffect</span>: <span class="title class_">SetupRenderEffectFn</span> = <span class="function">(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">  instance,</span></span></span><br><span class="line"><span class="params"><span class="function">  initialVNode,</span></span></span><br><span class="line"><span class="params"><span class="function">  container,</span></span></span><br><span class="line"><span class="params"><span class="function">  anchor,</span></span></span><br><span class="line"><span class="params"><span class="function">  parentSuspense,</span></span></span><br><span class="line"><span class="params"><span class="function">  isSVG,</span></span></span><br><span class="line"><span class="params"><span class="function">  optimized</span></span></span><br><span class="line"><span class="params"><span class="function"></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 为渲染创建响应式 effect</span></span><br><span class="line">  instance.<span class="property">update</span> = <span class="title function_">effect</span>(<span class="keyword">function</span> <span class="title function_">componentEffect</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总结：<code>vue</code> 在<code>update，watch，reactive</code>中调用 <code>effect</code>，通过 <code>Proxy</code> 劫持 <code>get</code> 通过 <code>track</code> 来收集 <code>effect</code>，然后在 <code>trigger</code> 中触发目标收集的所有 <code>effect</code>，在<code>effect</code> 中调用 <code>patch</code> 来触发渲染。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/02/04/%E5%AE%8F%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%BE%AE%E4%BB%BB%E5%8A%A1/" class="post-title-link" itemprop="url">宏任务与微任务</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-04 20:21:16" itemprop="dateCreated datePublished" datetime="2021-02-04T20:21:16+08:00">2021-02-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/promise/" itemprop="url" rel="index"><span itemprop="name">promise</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>在进入正题之前，我们先了解一下浏览器内的队列，可以参考一下下图：</p>
+<p><img src="/img/promise-queue.png" alt="promise-queue"></p>
+<p>消息队列中的任务类型大致可分为：输入事件(鼠标滚动、点击、移动)、微任务、文件读写、WebSocket、JavaScript 定时器等等，另外还有页面相关事件，例如 JavaScript 执行、执行 DOM、样式计算、布局计算、CSS动画等。</p>
+<p>这样遇到的第一个问题是，如何处理高优先级的任务。就以DOM节点变化来说，其变化非常频繁。</p>
+<p>为了解决上面这个问题，就需要引入微任务的概念。我们把消息队列中的任务称为宏任务，每个宏任务中都包含一个微任务队列，在执行宏任务的过程中，如果DOM有变化，那么就会将该变化添加到微任务列表中，等宏任务中的主要功能都直接完成之后，会取出微任务队列执行。</p>
+<p>第二个问题，单个任务执行过长问题，使用回调可以来规避。</p>
+<h3 id="setTimeout"><a href="#setTimeout" class="headerlink" title="setTimeout"></a>setTimeout</h3><p>看完队列，我们再来看看 <code>setTimeout</code>，消息队列中的任务是按照顺序执行的，所以不能将定时器的回调函数直接添加到消息队列中，在正常使用的消息队列之外，还有一个延迟队列</p>
+<p>当 <code>JavaScript</code> 调用 <code>setTimeout</code> 设置回调函数的时候，渲染进程将会创建一个回调任务，并添加到延迟队列中</p>
+<p>当消息队列的一个任务执行完成之后，就开始执行延时队列函数，根据发起时间和延时时间可以计算出到期的任务，到期任务执行完成之后，继续下一个循环。</p>
+<p>使用 <code>setTimeout</code> 注意项</p>
+<h4 id="如果当前任务执行时间过久，会影延迟到期定时器任务的执行"><a href="#如果当前任务执行时间过久，会影延迟到期定时器任务的执行" class="headerlink" title="如果当前任务执行时间过久，会影延迟到期定时器任务的执行"></a>如果当前任务执行时间过久，会影延迟到期定时器任务的执行</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bar</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(bar, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5000</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">let</span> i = <span class="number">5</span>+<span class="number">8</span>+<span class="number">8</span>+<span class="number">8</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(i)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">foo</span>()</span><br></pre></td></tr></table></figure>
+
+<p>延时任务会被延时 500毫秒，执行过程如下图</p>
+<p><img src="/img/promise-timeout.png" alt="promise-timeout"></p>
+<h4 id="如果-setTimeout-存在嵌套调用，那么系统会设置最短时间间隔为-4-毫秒"><a href="#如果-setTimeout-存在嵌套调用，那么系统会设置最短时间间隔为-4-毫秒" class="headerlink" title="如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒"></a>如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒</h4><p>看如下代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">cb</span>(<span class="params"></span>) &#123; <span class="built_in">setTimeout</span>(cb, <span class="number">0</span>); &#125;</span><br><span class="line"><span class="built_in">setTimeout</span>(cb, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码前五次调用的的间隔时间比较小，如果被嵌套调用5次以上，系统会判定该函数方法被阻塞，如果定时器的调用时间间隔小于4毫秒，浏览器会将每次调用时间间隔设置为 4 毫秒。所以使用 <code>setTimeout</code> 来实现 <code>JavaScript</code> 动画就不是一个很好的主意。</p>
+<h4 id="未激活的页面，setTimeout-执行最小间隔是-1000-毫秒"><a href="#未激活的页面，setTimeout-执行最小间隔是-1000-毫秒" class="headerlink" title="未激活的页面，setTimeout 执行最小间隔是 1000 毫秒"></a>未激活的页面，setTimeout 执行最小间隔是 1000 毫秒</h4><h4 id="延时执行时间有最大值，超出-2147483647-毫秒会被立即执行。"><a href="#延时执行时间有最大值，超出-2147483647-毫秒会被立即执行。" class="headerlink" title="延时执行时间有最大值，超出 2147483647 毫秒会被立即执行。"></a>延时执行时间有最大值，超出 2147483647 毫秒会被立即执行。</h4><h3 id="XMLHttpRequest"><a href="#XMLHttpRequest" class="headerlink" title="XMLHttpRequest"></a>XMLHttpRequest</h3><p>了解完 <code>setTimeout</code>后，我们在看一下 <code>XMLHttpRequest</code>，其工作过程可以参考下图：</p>
+<p><img src="/img/promise-ajax.png" alt="promise-ajax"></p>
+<h3 id="宏任务和微任务"><a href="#宏任务和微任务" class="headerlink" title="宏任务和微任务"></a>宏任务和微任务</h3><h4 id="宏任务"><a href="#宏任务" class="headerlink" title="宏任务"></a>宏任务</h4><p>页面中中的大部分任务都是在主线程上执行的，这些任务包括了：</p>
+<ul>
+<li>渲染事件（如解析 DOM、计算布局、绘制）</li>
+<li>用户交互事件（如鼠标点击、滚动页面、放大缩小等）</li>
+<li>JavaScript 脚本执行事件</li>
+<li>网络请求完成、文件读写完成事件</li>
+</ul>
+<p>看下面一段代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;!<span class="variable constant_">DOCTYPE</span> html&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&#x27;demo&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;<span class="name">ol</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                <span class="tag">&lt;<span class="name">li</span>&gt;</span>test<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">ol</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="keyword">function</span> <span class="title function_">timerCallback2</span>(<span class="params"></span>)&#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="keyword">function</span> <span class="title function_">timerCallback</span>(<span class="params"></span>)&#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">1</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">            <span class="built_in">setTimeout</span>(timerCallback2,<span class="number">0</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="built_in">setTimeout</span>(timerCallback,<span class="number">0</span>)</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这里我们的目的是想用 <code>setTimeout</code> 来设置两个回调任务，并让他们按照前后顺序来指向，中间不要插入其他任务，但实际执行情况如下：</p>
+<p><img src="/img/promise-p.png" alt="promise-p"></p>
+<p>左右两个黄色色块就是 <code>setTimeout</code> 触发的两个定时器任务，在中间浅红色区域有很多一段一段的任务，这是被渲染引擎插在两个定时器任务中间的任务。</p>
+<p>这里要说明一下，<code>setTimeout</code>函数所触发的回调函数都是宏任务。</p>
+<h4 id="微任务"><a href="#微任务" class="headerlink" title="微任务"></a>微任务</h4><p>首先来说一下同步回调和异步回调的概念，每个任务在执行过程中，都有自己的调用栈，同步回调就是在当前主函数的上下文中执行回调函数，异步回调是指回到函数在主函数之外执行，一般由两种方式：</p>
+<ul>
+<li>第一种是把异步函数做成一个任务，添加到信息队列尾部</li>
+<li>第二种是把异步函数添加到微任务队列中，这样就可以在当前任务的末尾处执行微任务了</li>
+</ul>
+<p>而微任务就是一个需要异步执行的函数，执行时机是在主函数执行之后，当前宏任务结束之前</p>
+<p>现代浏览器里面，产生微任务有两种方式</p>
+<ul>
+<li>使用 <code>MutationObserver</code> 监控某个 DOM 节点，然后再通过 <code>JavaScript</code> 来修改这个节点，或者为这个节点添加、删除部分子节点，当 DOM 节点发生变化时，机会产生 DOM 变化记录的微任务</li>
+<li>使用 <code>Promise</code>，当调用 <code>Promise.resolve()</code> 或者 <code>Promise.reject()</code>的时候，也会产出微任务</li>
+</ul>
+<p>这两个方式产生的微任务都会被<code>JavaScript</code>引擎按照顺序保存到微任务中</p>
+<p>当前宏任务的 <code>JavaScript</code> 快执行完成时，js 引擎准备退出全局指向上下文并清空调用栈的时候，<code>JavaScript</code> 引擎·会检查全局执行上下文中的微任务队列，然后按照顺序执行队列中的微任务。执行微任务的时间点称为检查点。</p>
+<p>如果在执行微任务的过程中，产生了新的微任务，同样会将该微任务添加到微任务队列中，也就是在执行微任务过程中产生的新的微任务并不会推迟到下个宏任务中，而是在当前宏任务中继续执行，直到清空队列。</p>
+<p>如果在在一个宏任务中分别创建一个用于回调的宏任务和微任务，微任务一定会早于宏任务执行，因为宏任务会进入队列，而微任务会在本次执行</p>
+<p>其示意图如下：</p>
+<p><img src="/img/promise-w01.png" alt="promise-w01"><br><img src="/img/promise-w02.png" alt="promise-w02"></p>
+<h4 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h4><p> 以如下代码为例：</p>
+ <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">// 此代码会被立即执行</span></span><br><span class="line"><span class="keyword">const</span> test = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 此代码会产生一个微任务，放到此宏任务的检查点执行，也就是.then之后</span></span><br><span class="line">    <span class="comment">// 这时候可以顺利的取到.then内部的回调函数来执行</span></span><br><span class="line">    <span class="title function_">resolve</span>(<span class="number">100</span>)</span><br><span class="line">&#125;)</span><br><span class="line">test.<span class="title function_">then</span>(<span class="function"><span class="params">v</span>=&gt;</span>&#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(v)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h3> <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;foo&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">bar</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar start&#x27;</span>)</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">foo</span>()</span><br><span class="line">  <span class="comment">// 微任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;bar end&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 宏任务阶段执行</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;script start&#x27;</span>)</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 延时队列最后执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;setTimeout&#x27;</span>)</span><br><span class="line">&#125;, <span class="number">0</span>)</span><br><span class="line"><span class="title function_">bar</span>();</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span> (<span class="params">resolve</span>) &#123;</span><br><span class="line">  <span class="comment">// 宏任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;promise executor&#x27;</span>)</span><br><span class="line">  <span class="title function_">resolve</span>();</span><br><span class="line">&#125;).<span class="title function_">then</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 微任务阶段执行</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;promise then&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 宏任务阶段执行</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;script end&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最终输出</span></span><br><span class="line"><span class="comment">// script start / bar start / foo / promise executor / script end / bar end / promise then / setTimeout</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2021/01/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="陈龙">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陈龙·今朝">
+      <meta itemprop="description" content="知识总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 陈龙·今朝">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">设计模式</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-01-04 22:21:16" itemprop="dateCreated datePublished" datetime="2021-01-04T22:21:16+08:00">2021-01-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>本篇算是对极客上的 &lt;&lt;设计模式之美&gt;&gt; 看完之后的一个个人小总结。</p>
+<h3 id="设计模式与范式"><a href="#设计模式与范式" class="headerlink" title="设计模式与范式"></a>设计模式与范式</h3><h4 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h4><p>一个类只允许创建一个对象，这个类就是单例类，这个模式就是单例模式。</p>
+<p>对于系统中只应该保存一份的数据比较合适。</p>
+<p>在实现的时候可以注意一下此单例类是初始就创建还是延时创建</p>
+<p>示例如下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Logger</span> &#123;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">logger</span> &#123;</span><br><span class="line">  <span class="keyword">static</span> instance = <span class="keyword">new</span> <span class="title class_">Logger</span>()</span><br><span class="line">  <span class="title function_">getInstance</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">instance</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="工厂模式"><a href="#工厂模式" class="headerlink" title="工厂模式"></a>工厂模式</h4><p>当创建逻辑比较复杂的时候，可以考虑使用工厂模式，封装对象的创建过程。</p>
+<ul>
+<li>当代码中存在 if-else 分支，动态的根据不同的类型创建不同的对象</li>
+<li>单个对象本身创建比较复杂</li>
+</ul>
+<p>就个人开发经验来说，在项目中遇到过根据传入参数，创建点线面箭头等对象的需求，使用了工厂模式</p>
+<h4 id="建造者模式"><a href="#建造者模式" class="headerlink" title="建造者模式"></a>建造者模式</h4><p>当一个类初始化参数较复杂，存在众多参数和可选项，并且存在校验时，可以使用建造者模式，例如：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Builder</span> &#123;</span><br><span class="line">    <span class="title function_">constructor</span>(<span class="params">options</span>)&#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    setName (name) &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">      <span class="keyword">return</span> <span class="variable language_">this</span></span><br><span class="line">    &#125;</span><br><span class="line">    setMaxTotal (num) &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">      <span class="keyword">return</span> <span class="variable language_">this</span></span><br><span class="line">    &#125;</span><br><span class="line">    build () &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其使用方式可能如下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Builder</span>().<span class="title function_">setName</span>(<span class="string">&quot;dbconnectionpool&quot;</span>).<span class="title function_">setMaxTotal</span>(<span class="number">16</span>).<span class="title function_">build</span>();</span><br></pre></td></tr></table></figure>
+
+<p>调用完<code>build</code> 之后算是一个完整的创建</p>
+<h4 id="原型模式"><a href="#原型模式" class="headerlink" title="原型模式"></a>原型模式</h4><p><code>JavaScript</code> 的引入的类，便是基于原型的语法糖</p>
+<h4 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h4><p>代理模式，就是在不改变原始类的情况下，通过引入代理类来给原始类附加功能。示例如下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UserController</span> &#123;</span><br><span class="line">  <span class="title function_">login</span>(<span class="params">name</span>) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserControllerProxy</span> &#123;</span><br><span class="line">  userController = <span class="literal">null</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">userController</span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">userController</span> = userController</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">login</span>(<span class="params">name</span>) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">userController</span>.<span class="title function_">login</span>(name)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">UserControllerProxy</span>(<span class="keyword">new</span> <span class="title class_">UserController</span>())</span><br></pre></td></tr></table></figure>
+
+<p>对于如果 <code>UserController</code> 的接口过于繁多，我们不想一个个的取重新覆写，可以通过 <code>proxy</code> 来返回我们不想覆写的接口</p>
+<h4 id="桥接模式"><a href="#桥接模式" class="headerlink" title="桥接模式"></a>桥接模式</h4><p>在我的理解中，就是把多个分支执行组合，用作者的例子就是 JDBC驱动来查询各种数据库</p>
+<h4 id="装饰器模式"><a href="#装饰器模式" class="headerlink" title="装饰器模式"></a>装饰器模式</h4><p>在我的个人小库 <a target="_blank" rel="noopener" href="https://github.com/chenlong-frontend/validate-param">typescript-validate-param</a>中，通过装饰器模式，增强了原有函数，添加了参数校验的功能</p>
+<h4 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h4><p>在我实际开发过程中，遇到过需要同时兼容两个版本<code>sdk</code>的需求，我是通过适配器模式模式来实现的，对外传入两个版本的sdk都可以了，内部通过适配，把接口做了一层转换，再暴露出去，以此达到同时兼容的目的</p>
+<h4 id="门面模式"><a href="#门面模式" class="headerlink" title="门面模式"></a>门面模式</h4><p>在我实际开发过程中，遇到过一个需求，有些内部二级模块下的方法需要挂在一级模块下暴露出去，例如</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原本挂在b下方法，需要通过c直接暴露</span></span><br><span class="line">a.<span class="property">b</span>.<span class="title function_">c</span>() </span><br><span class="line">a.<span class="title function_">c</span>()</span><br></pre></td></tr></table></figure>
+
+<p>这里通过属性拦截代理也可以实现，不过个人觉得门面模式更加清晰。另外门面还有拥有可以合并多模块接口调用的优势，非常适合</p>
+<h4 id="组合模式"><a href="#组合模式" class="headerlink" title="组合模式"></a>组合模式</h4><p>不常用模式。此模式并不是面向对象设计中的组合关系。以下引用作者原话说明一下</p>
+<blockquote>
+<p>组合模式，将一组对象组织成树形结构，将单个对象和组合对象都看做树中的节点，以统一处理逻辑，并且它利用树形结构的特点，递归地处理每个子树，依次简化代码实现。使用组合模式的前提在于，你的业务场景必须能够表示成树形结构。</p>
+</blockquote>
+<h4 id="享元模式"><a href="#享元模式" class="headerlink" title="享元模式"></a>享元模式</h4><p>不常用模式。其意图是复用对象，节省内存，前提是享元对象是不可变对象。其实现非常简单，通过工厂模式，用一个map存好即可。</p>
+<p>与单例的区别在于，单例模式是为了保证对象的全局唯一，享元是为了实现对象复用，节省内存</p>
+<h4 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h4><p>经典模式，自定义事件分发模式便是其中之一</p>
+<h4 id="模板模式"><a href="#模板模式" class="headerlink" title="模板模式"></a>模板模式</h4><p>在<code>js</code>中，我选择回调</p>
+<h4 id="策略模式"><a href="#策略模式" class="headerlink" title="策略模式"></a>策略模式</h4><p>简单来说，我觉得这个模式就是使用查表法来替换<code>if</code>和<code>switch</code>的分支判断</p>
+<h4 id="职责链模式"><a href="#职责链模式" class="headerlink" title="职责链模式"></a>职责链模式</h4><p>引用原文</p>
+<blockquote>
+<p>在职责链模式中，多个处理器依次处理同一个请求。一个请求先经过A处理器处理，然后再把请求传递给B处理器，B处理器处理完后再传递给C处理器，以此类推，形成一个链条。链条上的每个处理器各自承担各自的处理职责，所以叫作职责链模式。</p>
+</blockquote>
+<p>我觉着<code>vue3</code>中在调用了<code>createApp</code>后，感觉就是这种模式，每个函数把处理完的结果依次传给下一个</p>
+<h4 id="状态模式"><a href="#状态模式" class="headerlink" title="状态模式"></a>状态模式</h4><p>我觉着这个模式有点像 <code>vue</code> 中的 <code>vuex</code>和 <code>react</code> 中的 <code>redux</code>。</p>
+<h4 id="访问者模式"><a href="#访问者模式" class="headerlink" title="访问者模式"></a>访问者模式</h4><p>代码可读性差，不建议使用。本质上就是将操作和对象解耦</p>
+<h4 id="备忘录模式"><a href="#备忘录模式" class="headerlink" title="备忘录模式"></a>备忘录模式</h4><p>捕捉一个对象的内部状态，并保存下来，例如我们实现一个编辑器，将用户的每一步操作后的结果都存到一个数组里，会导致一段时间后，对内存消耗会越来越大</p>
+<p>所以我们需要全量备份和增量备份相结合，并且保持低频全量备份，高频增量备份。</p>
+<h4 id="中介模式"><a href="#中介模式" class="headerlink" title="中介模式"></a>中介模式</h4><p>这个模式在实际开发中有使用过，场景在于，我有很多小的模块，有些功能需求需要组合多个模块，而且需要一些必要的逻辑代码才能实现，这种情况下，便加入了一个中介者来实现，也就是一个上帝类，可以获取到所有模块的事件和方法，以此来实现对应的功能。</p>
+<p>总结：由于最近一年的工作以<code>sdk</code>的的功能开发为主，这些设计模式多多少少都有了一些应用，有些是随着项目的不断壮大和复杂，自己想出来的一些优化方案，后来看了这篇课程之后，发现自己的有些实现很切合这其中的某一个设计模式，看完课程之后，又对项目进行了一些局部重构，更规范的来运用这些设计模式。</p>
+<p>下面是总结的课程中的一些代码质量上的规范</p>
+<h3 id="快速改善代码质量的编程规范"><a href="#快速改善代码质量的编程规范" class="headerlink" title="快速改善代码质量的编程规范"></a>快速改善代码质量的编程规范</h3><h4 id="命名长度"><a href="#命名长度" class="headerlink" title="命名长度"></a>命名长度</h4><p>对于一些默认的，大家熟知的词，采用缩写，作用域较小的变量，采用短一点的命名，相对类名这种的可以长一些</p>
+<h4 id="通过上下文简化命名"><a href="#通过上下文简化命名" class="headerlink" title="通过上下文简化命名"></a>通过上下文简化命名</h4><p>一个例子就能明白</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">User</span> user = <span class="keyword">new</span> <span class="title class_">User</span>();</span><br><span class="line">user.<span class="title function_">getName</span>(); <span class="comment">// 借助user对象这个上下文</span></span><br></pre></td></tr></table></figure>
+<h4 id="命名要可读，可搜索"><a href="#命名要可读，可搜索" class="headerlink" title="命名要可读，可搜索"></a>命名要可读，可搜索</h4><p>不用是使用生僻词，可搜索体现在 <code>getXXX</code>、<code>selectXXX</code> 这种带有可搜索前缀的命名上</p>
+<h4 id="命名接口"><a href="#命名接口" class="headerlink" title="命名接口"></a>命名接口</h4><p>接口一般可以加前缀 <code>I</code>，表示 <code>Interface</code>，或者添加后缀<code>Impl</code></p>
+<h4 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h4><p>注：这个我一般使用 vscode 的 <code>document.this</code></p>
+<h4 id="类、函数多大才合适"><a href="#类、函数多大才合适" class="headerlink" title="类、函数多大才合适"></a>类、函数多大才合适</h4><p>函数尽量不要超过一屏，类能做到内部接口清晰可寻</p>
+<h4 id="一行代码多少最合适"><a href="#一行代码多少最合适" class="headerlink" title="一行代码多少最合适"></a>一行代码多少最合适</h4><p>尽量不要超过编辑器显示的宽度</p>
+<h4 id="善用空行分割单元快、四格缩进还是两格缩进、大括号是否要另起一行"><a href="#善用空行分割单元快、四格缩进还是两格缩进、大括号是否要另起一行" class="headerlink" title="善用空行分割单元快、四格缩进还是两格缩进、大括号是否要另起一行"></a>善用空行分割单元快、四格缩进还是两格缩进、大括号是否要另起一行</h4><p>注：此处我一般使用编辑器自带格式化工具</p>
+<h4 id="将代码分割成更小的单元快"><a href="#将代码分割成更小的单元快" class="headerlink" title="将代码分割成更小的单元快"></a>将代码分割成更小的单元快</h4><p>只有在代码逻辑比较复杂的时候，才建议提炼类或者函数</p>
+<h4 id="避免参数过多"><a href="#避免参数过多" class="headerlink" title="避免参数过多"></a>避免参数过多</h4><p>函数参数多于 5个是，会影响到代码可读性，看是否能通过拆分多个函数来减少参数，或者将参数封装成对象</p>
+<h4 id="勿用函数参数来控制逻辑"><a href="#勿用函数参数来控制逻辑" class="headerlink" title="勿用函数参数来控制逻辑"></a>勿用函数参数来控制逻辑</h4><p>不要在函数中使用布尔类型的参数类控制内部逻辑</p>
+<h4 id="函数设计要职责单一"><a href="#函数设计要职责单一" class="headerlink" title="函数设计要职责单一"></a>函数设计要职责单一</h4><p>要符合单一职责原则</p>
+<h4 id="移除过深的嵌套层次"><a href="#移除过深的嵌套层次" class="headerlink" title="移除过深的嵌套层次"></a>移除过深的嵌套层次</h4><p><code>if-else</code>、<code>switch-case</code>、<code>for</code> 的嵌套最好不要超过两层，一般有如下解决方法</p>
+<ul>
+<li>去除多余的 <code>if</code> 或者 <code>else</code> 语句</li>
+<li>使用编程语言提供的 <code>continue</code>、<code>break</code>、<code>return</code> 关键字，提前退出嵌套</li>
+<li>调整执行顺序减少嵌套。</li>
+<li>将部分嵌套封装成函数调用，以此来减少嵌套</li>
+</ul>
+<h4 id="学会使用解释性变量"><a href="#学会使用解释性变量" class="headerlink" title="学会使用解释性变量"></a>学会使用解释性变量</h4><ul>
+<li>使用常量取代魔法数字，比如圆周率 <code>3.1415</code>，可以使用 <code>PI</code> 变量来承接一下</li>
+<li>使用解释性变量来解释复杂表达式。例子如下</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (date.<span class="title function_">after</span>(<span class="variable constant_">SUMMER_START</span>) &amp;&amp; date.<span class="title function_">before</span>(<span class="variable constant_">SUMMER_END</span>)) &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 引入解释性变量后逻辑更加清晰</span></span><br><span class="line"><span class="keyword">const</span> isSummer = date.<span class="title function_">after</span>(<span class="variable constant_">SUMMER_START</span>)&amp;&amp;date.<span class="title function_">before</span>(<span class="variable constant_">SUMMER_END</span>);</span><br><span class="line"><span class="keyword">if</span> (isSummer) &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -243,353 +660,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2020/09/09/%E6%A8%A1%E6%9D%BF%E8%BF%90%E7%AE%97%E6%9B%BF%E6%8D%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="陈龙">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陈龙·今朝">
-      <meta itemprop="description" content="知识总结">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 陈龙·今朝">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/09/09/%E6%A8%A1%E6%9D%BF%E8%BF%90%E7%AE%97%E6%9B%BF%E6%8D%A2/" class="post-title-link" itemprop="url">SVG文字外框自适应 & 模板运算替换</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-09-09 15:51:16" itemprop="dateCreated datePublished" datetime="2020-09-09T15:51:16+08:00">2020-09-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/javascript/" itemprop="url" rel="index"><span itemprop="name">javascript</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>如果我们动态的修改svg内部文字的长度，很容易遇到文字超出外框的情况，这个时候我们就需要自动调节外框的长度。</p>
-<p>假设<code>svg</code>的外框路径代码如下，其中<code>{{x+*}}</code>中的x就是文字的长度，我们需要加上后面的数字，并把原先的模板替换掉。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;path d=<span class="string">&quot;M13.0780339,0.5 L0.574889123,22.2905543 L3.49834121,27.5 L&#123;&#123;x+31&#125;&#125;.7099611,27.5 L&#123;&#123;x+44&#125;&#125;.1969137,5.64739256 L&#123;&#123;x+41&#125;&#125;.4022785,0.5 L13.0780339,0.5 Z&quot;</span>&gt;&lt;/path&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h3><p>最初我的想法是先用正则把 <code>{{x+31}}、{{x+44}}、{{x+41}}</code>全都匹配出来，然后再通过正则把里面的数字匹配出来，然后和<code>x</code>相加，把得到的最终值替换回去，核心代码如下：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> svg = <span class="string">&#x27;&lt;path d=&quot;M13.0780339,0.5 L0.574889123,22.2905543 L3.49834121,27.5 L&#123;&#123;x+31&#125;&#125;.7099611,27.5 L&#123;&#123;x+44&#125;&#125;.1969137,5.64739256 L&#123;&#123;x+41&#125;&#125;.4022785,0.5 L13.0780339,0.5 Z&quot;&gt;&lt;/path&gt;&#x27;</span></span><br><span class="line"></span><br><span class="line">svg.<span class="title function_">match</span>(<span class="regexp">/&#123;&#123;x+.*?&#125;&#125;/g</span>) <span class="comment">// 匹配出模板</span></span><br><span class="line"></span><br><span class="line">string.<span class="title function_">match</span>(<span class="regexp">/[0-9]+/</span>) <span class="comment">// 匹配出模板里的字符串</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h3><p>方法一虽然实现起来比较简单，但是看起来比较的low，而且限定只能处理数字，便有了方法二，核心代码如下：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">parseTemplate</span>(<span class="params">template, x</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> origArr = template.<span class="title function_">match</span>(<span class="regexp">/&#123;&#123;x+.*?&#125;&#125;/g</span>);</span><br><span class="line">  <span class="keyword">let</span> arr = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(origArr));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; arr.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    arr[i] = arr[i].<span class="title function_">replace</span>(<span class="regexp">/&#123;&#123;|&#125;&#125;/g</span>, <span class="string">&quot;&quot;</span>);</span><br><span class="line">    arr[i] = <span class="built_in">eval</span>(arr[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; origArr.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    template = template.<span class="title function_">replace</span>(origArr[i], arr[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> template;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>方法二和方法同样先通过正则匹配出了模板代码，然后通过把{{ }}里的代码取出来进行<code>eval</code>直接运算得到结果，然后进行替换，这种方法没有了数字的限制。</p>
-<h3 id="方法三"><a href="#方法三" class="headerlink" title="方法三"></a>方法三</h3><p>方法一和二的具体实现代码其实都不少，便有了方法三，核心代码如下：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> svg = <span class="string">&#x27;&lt;path d=&quot;M13.0780339,0.5 L0.574889123,22.2905543 L3.49834121,27.5 L&#123;&#123;x+31&#125;&#125;.7099611,27.5 L&#123;&#123;x+44&#125;&#125;.1969137,5.64739256 L&#123;&#123;x+41&#125;&#125;.4022785,0.5 L13.0780339,0.5 Z&quot;&gt;&lt;/path&gt;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">parseTemplate</span>(<span class="params">template, x</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> str = template.<span class="title function_">replace</span>(<span class="regexp">/&#123;&#123;/g</span>, <span class="string">&quot;$&#123;&quot;</span>).<span class="title function_">replace</span>(<span class="regexp">/&#125;&#125;/g</span>, <span class="string">&quot;&#125;&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">eval</span>(<span class="string">&quot;`&quot;</span> + str + <span class="string">&quot;`&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这种方式利用了<code>js</code>的字符串模板运算，将 <code>{{x+31}}</code>改成了<code>xxx$&#123;x+31&#125;xxx</code>，再通过<code>eval</code>运算直接得出最终想要的字符串。</p>
-<p>方法三相对于上两种代码量少了不少，而且也不难理解。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2020/09/07/expo%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="陈龙">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陈龙·今朝">
-      <meta itemprop="description" content="知识总结">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 陈龙·今朝">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/09/07/expo%E5%BC%80%E5%8F%91%E5%BF%83%E5%BE%97/" class="post-title-link" itemprop="url">expo开发心得</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-09-07 19:20:18" itemprop="dateCreated datePublished" datetime="2020-09-07T19:20:18+08:00">2020-09-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/javascript/" itemprop="url" rel="index"><span itemprop="name">javascript</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>最近自己用<code>uniapp</code>做小程序的时候，顿时就觉得刚工作是的<code>expo</code>的开发经验还是有点帮助的，这里重新温习当时做<code>expo</code>时的工作心得。</p>
-<p>这个<code>expo</code>的小项目已上传至我的 <a target="_blank" rel="noopener" href="https://github.com/chenlong-frontend/expo-app">github</a></p>
-<h2 id="react-native"><a href="#react-native" class="headerlink" title="react native"></a>react native</h2><h4 id="读取本地文件流"><a href="#读取本地文件流" class="headerlink" title="读取本地文件流"></a>读取本地文件流</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> xhr = <span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>()</span><br><span class="line">xhr.<span class="property">onload</span> = <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 文件返回值</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(xhr.<span class="property">response</span>)</span><br><span class="line">&#125;</span><br><span class="line">xhr.<span class="property">onerror</span> = <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="keyword">new</span> <span class="title class_">TypeError</span>(<span class="string">&#x27;Network request failed&#x27;</span>))</span><br><span class="line">&#125;</span><br><span class="line">xhr.<span class="property">responseType</span> = <span class="string">&#x27;blob&#x27;</span></span><br><span class="line">xhr.<span class="title function_">open</span>(<span class="string">&#x27;GET&#x27;</span>, uri, <span class="literal">true</span>)</span><br><span class="line">xhr.<span class="title function_">send</span>(<span class="literal">null</span>)</span><br></pre></td></tr></table></figure>
-
-<h4 id="点击反馈"><a href="#点击反馈" class="headerlink" title="点击反馈"></a>点击反馈</h4><p>由于兼容性问题，需要判断平台使用哪种点击反馈</p>
-<p>安卓中使用 <code>TouchableNativeFeedback</code> 组件</p>
-<p>IOS 中使用 <code>TouchableOpacity</code> 组件</p>
-<h4 id="关于-flatList-的和-reflash-的使用"><a href="#关于-flatList-的和-reflash-的使用" class="headerlink" title="关于 flatList 的和 reflash 的使用"></a>关于 flatList 的和 reflash 的使用</h4><p>之前在使用 flatList 时，按照文档的说明，在 flatList 中配置下拉刷新的行为，但出现一个问题，当数据为空时，将无法进行刷新，此种情况可以通过设置 flatList 的 ListEmptyComponent 来保证空白数据可刷新，或者在父级组件中使用刷新组件(前提是父级组件有高度)</p>
-<h4 id="关于修改问题后必须清空数据重新加载问题"><a href="#关于修改问题后必须清空数据重新加载问题" class="headerlink" title="关于修改问题后必须清空数据重新加载问题"></a>关于修改问题后必须清空数据重新加载问题</h4><p>首页的图片并不是随着列表一并返回到前端的，而是根据 fileToken 进行二次查询的，如果在不清空数据的情况下去获取数据，会出现编辑时添加的图片无法得到及时的更新，因为编辑问题是 fileToken 不会变，列表引用的展示图片的子组件也不会发生更新，也就不会去请求新的图片，目前采用的是清空数据</p>
-<h2 id="Expo"><a href="#Expo" class="headerlink" title="Expo"></a>Expo</h2><h4 id="使用流程"><a href="#使用流程" class="headerlink" title="使用流程"></a>使用流程</h4><ol>
-<li>注册 expo 账号，使用 expo-cli 创键项目，安装依赖，通过 <code>expo start</code> 运行项目、</li>
-<li>手机调至开发者模式，连接电脑，点击在模拟器中打开，会 cli 工作会自动安装 expo app 并打开项目</li>
-<li>开发完成时，通过 <code>expo build:android</code> 或 <code>expo build:ios</code>打包</li>
-<li>关于发布，如果使用 OTA 更新，只需打包一次，之后只需发布即可，应用会自动从云端更新</li>
-<li>打包后会生成一个二维码，可以在 expo app 中直接打开</li>
-</ol>
-<h4 id="OTA-配置"><a href="#OTA-配置" class="headerlink" title="OTA 配置"></a>OTA 配置</h4><p>在 app.json 中加入以下代码即可</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;updates&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;enabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;checkAutomatically&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ON_LOAD&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;fallbackToCacheTimeout&quot;</span><span class="punctuation">:</span> <span class="number">30000</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="配置-OTA-获取资源路径"><a href="#配置-OTA-获取资源路径" class="headerlink" title="配置 OTA 获取资源路径"></a>配置 OTA 获取资源路径</h4><ol>
-<li>通过执行例如 <code>expo export --public-url https://raw.githubusercontent.com/1016482011/bager-mobile/master</code>指令导出 js 和 html 的静态文件</li>
-<li>将导出的文件上传到你上一步所指定的服务器目录下</li>
-<li>进行 app 在线打包 <code>https://raw.githubusercontent.com/1016482011/bager-mobile/master/android-index.json&gt;</code>，此指令为安卓打包，ios 同理</li>
-</ol>
-<h4 id="隐藏"><a href="#隐藏" class="headerlink" title="隐藏"></a>隐藏</h4><p>expo 项目默认是开源公开的，如果不想公开在 app.json 里设置 <code>&quot;privacy&quot;: &quot;unlisted&quot;,</code></p>
-<h4 id="实用的资源站点"><a href="#实用的资源站点" class="headerlink" title="实用的资源站点"></a>实用的资源站点</h4><ol>
-<li><a target="_blank" rel="noopener" href="http://native.directory/">经过删选评分的 react native 组件</a></li>
-<li><a target="_blank" rel="noopener" href="https://expo.github.io/vector-icons/">expo 中的图标库</a></li>
-</ol>
-<h4 id="地理位置"><a href="#地理位置" class="headerlink" title="地理位置"></a>地理位置</h4><p>地理位置的接口在国内使用问题：</p>
-<ol>
-<li>获取的经纬度与使用的高德地图使用的不是同一套标准</li>
-<li>目前已知的此接口在华为手机中无法使用</li>
-</ol>
-<h4 id="地图"><a href="#地图" class="headerlink" title="地图"></a>地图</h4><p>expo 中只支持谷歌地图，实践证明国内无法使用，如果确实需要地址，可以内嵌 webview 来使用 web 版的地图</p>
-<h4 id="ImagePicker"><a href="#ImagePicker" class="headerlink" title="ImagePicker"></a>ImagePicker</h4><p>此功能的 <code>quality</code> 设置仅在裁剪时生效</p>
-<h4 id="状态栏"><a href="#状态栏" class="headerlink" title="状态栏"></a>状态栏</h4><p>状态栏在双平台下表现不一致，expo 在安卓下默认是全屏，即安卓从状态栏顶部开始布局，而 ios 从底部开始布局</p>
-<p>鉴于此种情况建议使用 react-navigation 提供的 header，或者自行根据不同平台做适配</p>
-<h4 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h4><p>在引用资源时，发现问题为 html 文件，在开发环境中可以引用，但打包之后的文件中并没有 html 文件，目前的解决方案是将 html 文件放到公网上，然后通过网络加载的方式获取</p>
-<h2 id="react-navigation"><a href="#react-navigation" class="headerlink" title="react-navigation"></a>react-navigation</h2><p>子路由无法清除父路由</p>
-<h4 id="跳转首页和登录页"><a href="#跳转首页和登录页" class="headerlink" title="跳转首页和登录页"></a>跳转首页和登录页</h4><p>首先说明一下 app 中每跳往一个新的路由，app 都会打开一个新的窗口，原先页面的组件并不会销毁，当直接已打开的页面时，不会触发原先页面的任何生命周期，但可以通过 react-navigation 的事件进行监听，如果有必要的话</p>
-<p>在提交完表单后，通过按下安卓的物理返回键不应该可以返回到提交页面，一般可以用 replace 解决，但首页和登录页在点击返回键时，应该直接退出应用，如果可以的话应该清空整个路由栈，然后进行跳转，实践证明清空路由栈的做法在子路由中无法执行，设计时应该避免此种情况，如果避免不了，应该在登录页和首页拦截返回事件，屏蔽默认事件并退出应用</p>
-<h4 id="使用-navigation-提供的-header"><a href="#使用-navigation-提供的-header" class="headerlink" title="使用 navigation 提供的 header"></a>使用 navigation 提供的 header</h4><p>如果 header 中存在和当前页面的联动操作时，可以使用自定义 header 组件并配合 redux 使用，例子如下</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注意此处的所有变量都是redux中的状态，problemListModelAction是redux的action</span></span><br><span class="line">&lt;<span class="title class_">Header</span></span><br><span class="line">    title=&#123;proName&#125;</span><br><span class="line">    leftIcon=&#123;<span class="literal">null</span>&#125;</span><br><span class="line">    type=&#123;!listModel ? <span class="string">&#x27;FontAwesome&#x27;</span> : <span class="string">&#x27;MaterialIcons&#x27;</span>&#125;</span><br><span class="line">    rightIcon=&#123;!listModel ? <span class="string">&#x27;map&#x27;</span> : <span class="string">&#x27;format-list-bulleted&#x27;</span>&#125;</span><br><span class="line">    onRightPress=&#123;<span class="function">() =&gt;</span> <span class="title function_">problemListModelAction</span>()&#125;</span><br><span class="line">/&gt;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> navigationOptions = &#123;</span><br><span class="line">    <span class="attr">headerTitle</span>: <span class="language-xml"><span class="tag">&lt;<span class="name">ProListHeaderWarp</span> /&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="在组件外调用路由"><a href="#在组件外调用路由" class="headerlink" title="在组件外调用路由"></a>在组件外调用路由</h4><p>如果存在在组件外调用路由的需求，比如在 redux 中进行跳转，可按如下进行配置</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NavigationService.js</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">NavigationActions</span>, <span class="title class_">StackActions</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-navigation&#x27;</span></span><br><span class="line"><span class="keyword">let</span> _navigator</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">setTopLevelNavigator</span>(<span class="params">navigatorRef</span>) &#123;</span><br><span class="line">  _navigator = navigatorRef</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">navigate</span>(<span class="params">routeName, params</span>) &#123;</span><br><span class="line">  _navigator.<span class="title function_">dispatch</span>(</span><br><span class="line">    <span class="title class_">NavigationActions</span>.<span class="title function_">navigate</span>(&#123;</span><br><span class="line">      routeName,</span><br><span class="line">      params</span><br><span class="line">    &#125;)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  navigate,</span><br><span class="line">  setTopLevelNavigator</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// APP.js</span></span><br><span class="line"></span><br><span class="line">&lt;<span class="title class_">AppNavigator</span></span><br><span class="line">    ref=&#123;<span class="function"><span class="params">navigatorRef</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="title class_">NavigationService</span>.<span class="title function_">setTopLevelNavigator</span>(navigatorRef)</span><br><span class="line">    &#125;&#125;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
-
-<p>之后便可以调用 NavigationService 中的 navigate 进行路由跳转了，但此方法进行的跳转路由无法去影响其他路由，例如 replace 和清空路由栈</p>
-<h4 id="关于不实现拦截-tab-跳转需求问题"><a href="#关于不实现拦截-tab-跳转需求问题" class="headerlink" title="关于不实现拦截 tab 跳转需求问题"></a>关于不实现拦截 tab 跳转需求问题</h4><p>按照文档说明，在 tab 页面中可以获取到页面跳转的事件，但并没有得到当前页面 url 和目标页面 url，虽然文档里说可以得到，之后未作深入调查，或许使用自定义 tab 栏可以更好的实现</p>
-<h4 id="修复大屏手机下标题栏顶部不同色块方法"><a href="#修复大屏手机下标题栏顶部不同色块方法" class="headerlink" title="修复大屏手机下标题栏顶部不同色块方法"></a>修复大屏手机下标题栏顶部不同色块方法</h4><p>使用了 react-navigation 的 header，并使用自定义 header 之后，在大屏手机上会出现 head 顶部有一条约 2px 的线，需要在配置 header 组件的同时设置 header 的背景色，具体如下：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> navigationOptions = &#123;</span><br><span class="line">  <span class="attr">headerTitle</span>: <span class="language-xml"><span class="tag">&lt;<span class="name">ProListHeaderWarp</span> /&gt;</span></span>,</span><br><span class="line">  <span class="attr">headerStyle</span>: &#123;</span><br><span class="line">    <span class="attr">backgroundColor</span>: <span class="string">&#x27;#3781C6&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>此处的 <code>#3781C6</code> 会同时应用到安卓手机的状态栏上</p>
-<h2 id="native-base"><a href="#native-base" class="headerlink" title="native base"></a>native base</h2><p>在入口页面引入 root 组件，来使用 nativebase 的全部功能</p>
-<h4 id="定制主题"><a href="#定制主题" class="headerlink" title="定制主题"></a>定制主题</h4><p><a target="_blank" rel="noopener" href="https://nativebase.io/customizer/">在线定制主题</a></p>
-<p>注意如果使用了定制主题，需要执行 <code>node node_modules/native-base/ejectTheme.js</code>，来或者所有的样式文件，并在入口中通过以下方式引入</p>
-<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="title class_">StyleProvider</span> style=&#123;<span class="title function_">getTheme</span>(variables)&#125;&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">Root</span>&gt;</span>&#123;其他代码&#125;<span class="tag">&lt;/<span class="name">Root</span>&gt;</span></span></span><br><span class="line">&lt;/<span class="title class_">StyleProvider</span>&gt;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chenlong-frontend.github.io/2019/07/04/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="陈龙">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="陈龙·今朝">
-      <meta itemprop="description" content="知识总结">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 陈龙·今朝">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/07/04/%E6%B5%8F%E8%A7%88%E5%99%A8%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91/" class="post-title-link" itemprop="url">浏览器插件开发</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-07-04 22:21:16" itemprop="dateCreated datePublished" datetime="2019-07-04T22:21:16+08:00">2019-07-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-22 09:52:43" itemprop="dateModified" datetime="2023-08-22T09:52:43+08:00">2023-08-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/chrome-plugin/" itemprop="url" rel="index"><span itemprop="name">chrome-plugin</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>实现一个见得浏览器插件还是相当简单的，首先通过如下途径开发扩展程序页面：<img src="/img/chrome-plugin01.png" alt="chrome-plugin"></p>
-<p>再打开如下图所示的开发者模式：<img src="/img/chrome-plugin02.png" alt="chrome-plugin"></p>
-<p>现在可以先把浏览器放一边，在一个空的文件夹中新建一个名为<code>manifest.json</code>的文件，此文件主要用来进行项目的配置，以我这个小例子来说，有如下配置：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;manifest_version&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bookmarks&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;在线收藏网址插件&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;icons&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;16&quot;</span><span class="punctuation">:</span> <span class="string">&quot;img/icon-16.png&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;48&quot;</span><span class="punctuation">:</span> <span class="string">&quot;img/icon-48.png&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;128&quot;</span><span class="punctuation">:</span> <span class="string">&quot;img/icon-128.png&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;browser_action&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;default_icon&quot;</span><span class="punctuation">:</span> <span class="string">&quot;img/icon-48.png&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;default_title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;在线网址收藏&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;default_popup&quot;</span><span class="punctuation">:</span> <span class="string">&quot;popup.html&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;bookmarks&quot;</span><span class="punctuation">,</span> <span class="string">&quot;tabs&quot;</span><span class="punctuation">,</span> <span class="string">&quot;activeTab&quot;</span><span class="punctuation">,</span> <span class="string">&quot;storage&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p><code>manifest_version</code>目前为固定值为 2，<code>browser_action</code>中的<code>popup.html</code>页面位置为下：</p>
-<p><img src="/img/chrome-plugin03.png" alt="chrome-plugin"></p>
-<p>我的功能主要便是在这个页面中实现的。</p>
-<p><code>permissions</code>为权限申请，按需申请即可。</p>
-<p>此处需在<code>manifest.json</code>同级目录下创建一个<code>popup.html</code>作为主要功能页。</p>
-<p>在此回到浏览器的拓展程序页，点击“加载已解压的拓展程序”按钮，选择打开上面的含有<code>manifest.json</code>的文件夹，如果出现如下画面，说明插件加载成功。</p>
-<p><img src="/img/chrome-plugin04.png" alt="chrome-plugin"></p>
-<p>下面便是具体功能的开发了，其中除去与浏览器交互外与 web 开发无异。</p>
-<p>在页面加载过程中，浏览器会在全局对象中注入<code>chrome</code>全局对象，与浏览器的交互便是通过此对象进行的。</p>
-<p>此对象下的方法与属性可在<a target="_blank" rel="noopener" href="https://crxdoc-zh.appspot.com/extensions/api_index">此处</a>找到.</p>
-<p>在此例子中我用到的浏览器接口有：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 存储值</span></span><br><span class="line">chrome.<span class="property">storage</span>.<span class="property">sync</span>.<span class="title function_">set</span>(&#123; <span class="attr">token</span>: <span class="string">&#x27;token&#x27;</span> &#125;, <span class="keyword">function</span>(<span class="params"></span>) &#123;&#125;)</span><br><span class="line"><span class="comment">// 取值</span></span><br><span class="line">chrome.<span class="property">storage</span>.<span class="property">sync</span>.<span class="title function_">get</span>(<span class="string">&#x27;token&#x27;</span>, <span class="keyword">function</span>(<span class="params">v</span>) &#123;&#125;)</span><br><span class="line"><span class="comment">// 获取查询当前窗口url</span></span><br><span class="line">chrome.<span class="property">tabs</span>.<span class="title function_">query</span>(&#123; <span class="attr">active</span>: <span class="literal">true</span>, <span class="attr">currentWindow</span>: <span class="literal">true</span> &#125;, <span class="keyword">function</span>(<span class="params">tabs</span>) &#123;</span><br><span class="line">  url = tabs[<span class="number">0</span>].<span class="property">url</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>由此可以看出如果如浏览器交互不多的话，还是相当简单的，这里是<a target="_blank" rel="noopener" href="https://github.com/1016482011/chrome-plugin-bookmarks">完整的例子</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
